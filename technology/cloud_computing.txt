@@ -1,0 +1,7 @@
+Cloud Computing Concepts
+
+Cloud computing provides computing resources such as servers, storage, databases, and software through network-accessible services.
+
+Infrastructure as a Service provides virtualized computing infrastructure. Platform as a Service provides an environment for developing and deploying applications. Software as a Service provides ready-to-use software applications.
+
+Cloud systems can offer scalability, elasticity, and flexible resource usage. Security, access control, data protection, and availability are important considerations.

@@ -1,0 +1,9 @@
+﻿Cloud Computing
+
+Cloud computing provides computing resources through network-accessible services.
+
+These resources can include servers, storage, databases, and software applications.
+
+Cloud computing allows users to access computing resources without managing physical infrastructure directly.
+
+Common cloud services include storage, computing power, databases, and software applications.
