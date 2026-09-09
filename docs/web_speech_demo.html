@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Web Speech API Demo</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 10px 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎤 Web Speech API Demo</h1>
+
+    <button onclick="startListening()">
+        🎤 Start Speech Recognition
+    </button>
+
+    <button onclick="speakText()">
+        🔊 Speak Text
+    </button>
+
+    <textarea
+        id="text"
+        placeholder="Speak something or type text here..."
+    ></textarea>
+
+
+    <script>
+
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+        let recognition = null;
+
+        if (SpeechRecognition) {
+
+            recognition = new SpeechRecognition();
+
+            recognition.continuous = false;
+
+            recognition.interimResults = false;
+
+            recognition.lang = "en-US";
+
+
+            recognition.onresult = function(event) {
+
+                const transcript =
+                    event.results[0][0].transcript;
+
+                document.getElementById("text").value =
+                    transcript;
+            };
+
+
+            recognition.onerror = function(event) {
+
+                alert(
+                    "Speech recognition error: " +
+                    event.error
+                );
+            };
+
+        }
+
+
+        function startListening() {
+
+            if (!recognition) {
+
+                alert(
+                    "Speech recognition is not supported in this browser."
+                );
+
+                return;
+            }
+
+            recognition.start();
+        }
+
+
+        function speakText() {
+
+            const text =
+                document.getElementById("text").value;
+
+            if (!text.trim()) {
+
+                alert(
+                    "Please enter or speak some text first."
+                );
+
+                return;
+            }
+
+            const speech =
+                new SpeechSynthesisUtterance(text);
+
+            speech.lang = "en-US";
+
+            speech.rate = 1;
+
+            speech.pitch = 1;
+
+            window.speechSynthesis.speak(
+                speech
+            );
+        }
+
+    </script>
+
+</body>
+</html>

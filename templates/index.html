@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Knowledge Retrieval Platform</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <style>
+
+        /* =====================================================
+           BASIC PAGE
+           ===================================================== */
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #111;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1000px;
+            margin: 40px auto;
+        }
+
+
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #555;
+        }
+
+
+        /* =====================================================
+           CARD
+           ===================================================== */
+
+        .card {
+            background: white;
+            padding: 28px;
+            margin-bottom: 25px;
+            border-radius: 15px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 27px;
+        }
+
+
+        /* =====================================================
+           FILE UPLOAD
+           ===================================================== */
+
+        .file-box {
+            background: #f7f8fa;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 18px;
+            margin: 15px 0;
+        }
+
+        .file-box label {
+            display: block;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .file-box input[type="file"] {
+            width: 100%;
+            font-size: 15px;
+        }
+
+
+        /* =====================================================
+           QUESTION
+           ===================================================== */
+
+        .question-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .question-row input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 17px;
+        }
+
+
+        /* =====================================================
+           BUTTONS
+           ===================================================== */
+
+        button {
+            border: none;
+            padding: 14px 22px;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .primary-button {
+            margin-top: 15px;
+        }
+
+
+        /* =====================================================
+           MESSAGE
+           ===================================================== */
+
+        .message {
+            background: #eaf7ec;
+            border: 1px solid #b7dfbd;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+
+
+        /* =====================================================
+           ANSWER
+           ===================================================== */
+
+        .answer {
+            background: #f1f1f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 19px;
+            line-height: 1.5;
+        }
+
+
+        /* =====================================================
+           SOURCES
+           ===================================================== */
+
+        .source {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 18px;
+            margin: 15px 0;
+            background: #fafafa;
+        }
+
+        .source h3 {
+            margin-top: 0;
+        }
+
+        .source a {
+            color: #0066cc;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .source a:hover {
+            text-decoration: underline;
+        }
+
+
+        /* =====================================================
+           VOICE
+           ===================================================== */
+
+        .voice-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        #speechStatus {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+
+        footer {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+            padding-bottom: 20px;
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 700px) {
+
+            .container {
+                width: 94%;
+            }
+
+            .header h1 {
+                font-size: 30px;
+            }
+
+            .question-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .question-row input[type="text"] {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .question-row button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <header class="header">
+
+        <h1>
+            🤖 AI Knowledge Retrieval Platform
+        </h1>
+
+        <p class="subtitle">
+            Development of AI-Based Knowledge Retrieval Platform
+            with Query Resolution System
+        </p>
+
+    </header>
+
+
+    <!-- =====================================================
+         UPLOAD FOUR DOCUMENTS
+         ===================================================== -->
+
+    <section class="card">
+
+        <h2>
+            📚 Upload Knowledge Base Documents
+        </h2>
+
+        <p>
+            Select one PDF, one DOCX, one TXT, and one CSV file,
+            then upload all four together.
+        </p>
+
+
+        <form
+            method="POST"
+            action="/"
+            enctype="multipart/form-data"
+        >
+
+            <input
+                type="hidden"
+                name="action"
+                value="upload"
+            >
+
+
+            <!-- PDF -->
+
+            <div class="file-box">
+
+                <label for="pdf_file">
+                    📄 PDF Document
+                </label>
+
+                <input
+                    type="file"
+                    id="pdf_file"
+                    name="pdf_file"
+                    accept=".pdf"
+                    required
+                >
+
+            </div>
+
+
+            <!-- DOCX -->
+
+            <div class="file-box">
+
+                <label for="docx_file">
+                    📝 DOCX Document
+                </label>
+
+                <input
+                    type="file"
+                    id="docx_file"
+                    name="docx_file"
+                    accept=".docx"
+                    required
+                >
+
+            </div>
+
+
+            <!-- TXT -->
+
+            <div class="file-box">
+
+                <label for="txt_file">
+                    📃 TXT Document
+                </label>
+
+                <input
+                    type="file"
+                    id="txt_file"
+                    name="txt_file"
+                    accept=".txt"
+                    required
+                >
+
+            </div>
+
+
+            <!-- CSV -->
+
+            <div class="file-box">
+
+                <label for="csv_file">
+                    📊 CSV Document
+                </label>
+
+                <input
+                    type="file"
+                    id="csv_file"
+                    name="csv_file"
+                    accept=".csv"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                📥 Upload All 4 Documents
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         STATUS MESSAGE
+         ===================================================== -->
+
+    {% if message %}
+
+    <section class="message">
+
+        {{ message | safe }}
+
+    </section>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         ASK QUESTION
+         ===================================================== -->
+
+    <section class="card">
+
+        <h2>
+            💬 Ask a Question
+        </h2>
+
+
+        <form
+            method="POST"
+            action="/"
+            id="questionForm"
+        >
+
+            <input
+                type="hidden"
+                name="action"
+                value="ask"
+            >
+
+
+            <div class="question-row">
+
+                <input
+                    type="text"
+                    name="question"
+                    id="questionInput"
+                    placeholder="Enter your question..."
+                    autocomplete="off"
+                    required
+                >
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    🔎 Ask Question
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =====================================================
+         ANSWER
+         ===================================================== -->
+
+    {% if answer %}
+
+    <section class="card">
+
+        <h2>
+            ✅ Answer
+        </h2>
+
+
+        <div class="answer">
+
+            {{ answer }}
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         RETRIEVED SOURCES
+         ===================================================== -->
+
+    {% if sources %}
+
+    <section class="card">
+
+        <h2>
+            📚 Retrieved Sources
+        </h2>
+
+
+        {% for source in sources %}
+
+        <div class="source">
+
+            <h3>
+                Result {{ loop.index }}
+            </h3>
+
+
+            <p>
+
+                <strong>
+                    Source:
+                </strong>
+
+
+                {% if source.stored_filename %}
+
+                <a
+                    href="{{ url_for(
+                        'open_source',
+                        filename=source.stored_filename
+                    ) }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+
+                    📄 {{ source.source }}
+
+                </a>
+
+                {% else %}
+
+                <a
+                    href="{{ url_for(
+                        'open_source',
+                        filename=source.source
+                    ) }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+
+                    📄 {{ source.source }}
+
+                </a>
+
+                {% endif %}
+
+            </p>
+
+
+            <p>
+
+                <strong>
+                    Distance:
+                </strong>
+
+                {{ source.distance }}
+
+            </p>
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+    {% endif %}
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         VOICE INTERACTION
+         ===================================================== -->
+
+    <section class="card">
+
+        <h2>
+            🎤 Voice Interaction
+        </h2>
+
+
+        <div class="voice-buttons">
+
+            <button
+                type="button"
+                onclick="startListening()"
+            >
+                🎤 Speak Question
+            </button>
+
+
+            <button
+                type="button"
+                onclick="speakAnswer()"
+            >
+                🔊 Read Answer
+            </button>
+
+        </div>
+
+
+        <p id="speechStatus">
+            Voice controls are ready.
+        </p>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+
+    <footer>
+
+        <p>
+            AI-Based Knowledge Retrieval Platform
+        </p>
+
+    </footer>
+
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+
+<script
+    src="{{ url_for('static', filename='script.js') }}"
+></script>
+
+
+</body>
+
+</html>

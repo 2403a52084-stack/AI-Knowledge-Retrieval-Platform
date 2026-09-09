@@ -1,4 +1,4 @@
-streamlit
+flask
 langchain
 langchain-community
 langchain-text-splitters
