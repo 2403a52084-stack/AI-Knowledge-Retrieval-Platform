@@ -1,49 +1,89 @@
-from agents.query_understanding_agent import QueryUnderstandingAgent
-from agents.retrieval_agent import RetrievalAgent
-from agents.response_generation_agent import ResponseGenerationAgent
-from agents.clarification_agent import ClarificationAgent
-from agents.memory_agent import ConversationMemoryAgent
+from .query_understanding_agent import QueryUnderstandingAgent
+from .retrieval_agent import RetrievalAgent
+from .response_generation_agent import ResponseGenerationAgent
 
 
-class MultiAgentOrchestrator:
+class Orchestrator:
 
     def __init__(self):
-
         self.query_agent = QueryUnderstandingAgent()
-        self.retrieval_agent = RetrievalAgent()
+        self.retrieval_agent = RetrievalAgent(
+            top_k=3,
+            confidence_threshold=0.40
+        )
         self.response_agent = ResponseGenerationAgent()
-        self.clarification_agent = ClarificationAgent()
-        self.memory_agent = ConversationMemoryAgent()
 
     def process_query(self, query):
 
-        query_info = self.query_agent.process(query)
+        query = str(query).strip()
 
-        if query_info["needs_clarification"]:
-
+        if not query:
             return {
-                "answer": self.clarification_agent.generate_question(query),
-                "results": [],
-                "clarification": True
+                "query": query,
+                "status": "error",
+                "message": "No query was provided."
             }
 
-        results = self.retrieval_agent.retrieve(
-            query_info["query"],
-            top_k=3
+        # Step 1: Query Understanding
+        try:
+            classification = self.query_agent.process_query(query)
+        except Exception as error:
+            return {
+                "query": query,
+                "status": "classification_error",
+                "message": f"Query classification failed: {error}"
+            }
+
+        query_type = classification.get(
+            "query_type",
+            "ambiguous"
         )
 
-        answer = self.response_agent.generate(
-            query_info["query"],
-            results
-        )
+        # Step 2: Retrieval
+        try:
+            retrieval_result = self.retrieval_agent.process_query(
+                query,
+                query_type=query_type
+            )
+        except Exception as error:
+            return {
+                "query": query,
+                "query_type": query_type,
+                "classification": classification,
+                "status": "retrieval_error",
+                "message": f"Retrieval failed: {error}"
+            }
 
-        self.memory_agent.add_interaction(
-            query_info["query"],
-            answer
-        )
+        # Step 3: Response Generation
+        try:
+            response_result = self.response_agent.process_query(
+                query,
+                retrieval_result
+            )
+        except Exception as error:
+            return {
+                "query": query,
+                "query_type": query_type,
+                "classification": classification,
+                "retrieval": retrieval_result,
+                "status": "response_error",
+                "message": f"Response generation failed: {error}"
+            }
 
         return {
-            "answer": answer,
-            "results": results,
-            "clarification": False
+            "query": query,
+            "query_type": query_type,
+            "classification": classification,
+            "retrieval": retrieval_result,
+            "response": response_result,
+            "answer": response_result.get("answer"),
+            "confidence": response_result.get("confidence"),
+            "confidence_score": response_result.get(
+                "confidence_score"
+            ),
+            "sources": response_result.get("sources", []),
+            "status": response_result.get(
+                "status",
+                "success"
+            )
         }

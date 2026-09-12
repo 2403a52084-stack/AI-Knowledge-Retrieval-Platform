@@ -1,98 +1,71 @@
+import os
+
 import chromadb
-
-from embeddings import generate_embeddings, load_embedding_model
-
-
-DB_PATH = "chroma_db"
-COLLECTION_NAME = "knowledge_base"
+from sentence_transformers import SentenceTransformer
 
 
-# Load embedding model
-model = load_embedding_model()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
+
+MODEL_NAME = "all-MiniLM-L6-v2"
 
 
-# Connect to ChromaDB
-client = chromadb.PersistentClient(
-    path=DB_PATH
+embedding_model = SentenceTransformer(MODEL_NAME)
+
+client = chromadb.PersistentClient(path=CHROMA_PATH)
+
+collection = client.get_collection(
+    name="knowledge_base"
 )
 
 
-def search(query, top_k=3):
+def retrieve(query, top_k=3):
+    """
+    Retrieve the most relevant chunks from the knowledge base.
+    """
 
-    collection = client.get_collection(
-        name=COLLECTION_NAME
-    )
+    query = str(query).strip()
 
-    # Generate embedding for the question
-    query_embedding = generate_embeddings(
-        model,
-        [query]
-    )
+    if not query:
+        return []
 
-    # Search ChromaDB
+    query_embedding = embedding_model.encode(
+        query
+    ).tolist()
+
     results = collection.query(
-        query_embeddings=query_embedding,
+        query_embeddings=[query_embedding],
         n_results=top_k
     )
 
-    documents = results.get("documents", [[]])[0]
-    metadatas = results.get("metadatas", [[]])[0]
-    distances = results.get("distances", [[]])[0]
+    documents = results.get("documents", [[]])
+    metadatas = results.get("metadatas", [[]])
+    distances = results.get("distances", [[]])
 
-    formatted_results = []
+    documents = documents[0] if documents else []
+    metadatas = metadatas[0] if metadatas else []
+    distances = distances[0] if distances else []
 
-    for index, document in enumerate(documents):
+    retrieved = []
 
-        metadata = metadatas[index] if index < len(metadatas) else {}
-        distance = distances[index] if index < len(distances) else None
+    for i, document in enumerate(documents):
 
-        formatted_results.append({
+        metadata = (
+            metadatas[i]
+            if i < len(metadatas)
+            else {}
+        )
+
+        distance = (
+            distances[i]
+            if i < len(distances)
+            else None
+        )
+
+        retrieved.append({
             "text": document,
             "metadata": metadata,
             "distance": distance
         })
 
-    return formatted_results
-
-
-if __name__ == "__main__":
-
-    print("=" * 60)
-    print("RAG RETRIEVAL TEST")
-    print("=" * 60)
-
-    query = input("\nEnter your question: ")
-
-    results = search(
-        query,
-        top_k=3
-    )
-
-    print("\n" + "=" * 60)
-    print("RETRIEVED RESULTS")
-    print("=" * 60)
-
-    for index, result in enumerate(results):
-
-        metadata = result["metadata"]
-
-        print(f"\n--- RESULT {index + 1} ---")
-
-        print(
-            "Source:",
-            metadata.get("source", "Unknown")
-        )
-
-        print(
-            "Chunk Index:",
-            metadata.get("chunk_index", "N/A")
-        )
-
-        if result["distance"] is not None:
-
-            print(
-                f"Distance: {result['distance']:.4f}"
-            )
-
-        print("\nText:")
-        print(result["text"])
+    return retrieved

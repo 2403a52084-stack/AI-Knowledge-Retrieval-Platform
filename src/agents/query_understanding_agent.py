@@ -1,35 +1,64 @@
 class QueryUnderstandingAgent:
-    """
-    Understands and analyzes the user's query.
-    """
 
     def process(self, query):
-
-        query = query.strip()
+        query = str(query).strip()
 
         if not query:
             return {
-                "query": "",
-                "intent": "empty",
-                "needs_clarification": True
+                "query": query,
+                "query_type": "ambiguous",
+                "classification_confidence": 0.0,
+                "routing": "clarification"
             }
 
-        words = query.split()
+        text = query.lower()
 
-        if len(words) <= 2:
-            intent = "short_query"
-            needs_clarification = True
+        if any(word in text for word in [
+            "difference",
+            "compare",
+            "comparison",
+            "versus",
+            "vs"
+        ]):
+            return {
+                "query": query,
+                "query_type": "comparative",
+                "classification_confidence": 0.95,
+                "routing": "retrieval_and_comparison"
+            }
 
-        elif "?" in query:
-            intent = "question"
-            needs_clarification = False
+        if (
+            text.startswith("how ")
+            or "steps" in text
+            or "procedure" in text
+            or "process" in text
+            or "calculate" in text
+            or "method" in text
+        ):
+            return {
+                "query": query,
+                "query_type": "procedural",
+                "classification_confidence": 0.90,
+                "routing": "retrieval_and_procedure"
+            }
 
-        else:
-            intent = "general_query"
-            needs_clarification = False
+        if len(query.split()) <= 2:
+            return {
+                "query": query,
+                "query_type": "ambiguous",
+                "classification_confidence": 0.60,
+                "routing": "clarification"
+            }
 
         return {
             "query": query,
-            "intent": intent,
-            "needs_clarification": needs_clarification
+            "query_type": "factual",
+            "classification_confidence": 0.85,
+            "routing": "retrieval_and_answer"
         }
+
+    def classify_query(self, query):
+        return self.process(query)
+
+    def process_query(self, query):
+        return self.process(query)
