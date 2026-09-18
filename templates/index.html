@@ -5,34 +5,45 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>AI Knowledge Retrieval Platform</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
     >
+
+    <title>
+        AI Knowledge Retrieval Platform
+    </title>
+
 
     <style>
 
-        /* =====================================================
-           BASIC PAGE
-           ===================================================== */
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f7fb;
-            color: #111;
+        * {
+            box-sizing: border-box;
         }
 
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f4f7fb;
+
+            color: #222;
+        }
+
+
         .container {
+
             width: 92%;
-            max-width: 1000px;
-            margin: 40px auto;
+
+            max-width: 1100px;
+
+            margin: 30px auto;
         }
 
 
@@ -41,18 +52,26 @@
            ===================================================== */
 
         .header {
+
             text-align: center;
+
             margin-bottom: 30px;
         }
 
+
         .header h1 {
-            font-size: 40px;
+
+            font-size: 38px;
+
             margin-bottom: 10px;
         }
 
-        .subtitle {
-            font-size: 18px;
-            color: #555;
+
+        .header p {
+
+            color: #666;
+
+            font-size: 17px;
         }
 
 
@@ -61,41 +80,90 @@
            ===================================================== */
 
         .card {
+
             background: white;
-            padding: 28px;
+
+            padding: 25px;
+
             margin-bottom: 25px;
+
             border-radius: 15px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+
+            box-shadow:
+                0 4px 15px
+                rgba(0, 0, 0, 0.08);
         }
 
+
         .card h2 {
+
             margin-top: 0;
-            font-size: 27px;
+
+            font-size: 26px;
         }
 
 
         /* =====================================================
-           FILE UPLOAD
+           UPLOAD
            ===================================================== */
 
         .file-box {
-            background: #f7f8fa;
+
+            background: #f8f9fb;
+
             border: 1px solid #ddd;
+
             border-radius: 10px;
-            padding: 18px;
-            margin: 15px 0;
+
+            padding: 16px;
+
+            margin: 12px 0;
         }
+
 
         .file-box label {
+
             display: block;
-            font-size: 18px;
+
             font-weight: bold;
-            margin-bottom: 10px;
+
+            margin-bottom: 8px;
         }
 
-        .file-box input[type="file"] {
+
+        .file-box input {
+
             width: 100%;
-            font-size: 15px;
+        }
+
+
+        /* =====================================================
+           BUTTON
+           ===================================================== */
+
+        button {
+
+            margin-top: 15px;
+
+            padding: 14px 22px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #333;
+
+            color: white;
+
+            font-size: 16px;
+
+            cursor: pointer;
+        }
+
+
+        button:hover {
+
+            opacity: 0.85;
         }
 
 
@@ -104,40 +172,24 @@
            ===================================================== */
 
         .question-row {
+
             display: flex;
+
             gap: 12px;
-            align-items: center;
         }
 
-        .question-row input[type="text"] {
+
+        .question-row input {
+
             flex: 1;
+
             padding: 15px;
+
             border: 1px solid #ccc;
+
             border-radius: 8px;
+
             font-size: 17px;
-        }
-
-
-        /* =====================================================
-           BUTTONS
-           ===================================================== */
-
-        button {
-            border: none;
-            padding: 14px 22px;
-            border-radius: 8px;
-            background: #333;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            opacity: 0.85;
-        }
-
-        .primary-button {
-            margin-top: 15px;
         }
 
 
@@ -146,12 +198,69 @@
            ===================================================== */
 
         .message {
-            background: #eaf7ec;
-            border: 1px solid #b7dfbd;
+
+            background: #eef8ee;
+
+            border: 1px solid #b8dfbf;
+
             padding: 18px;
+
             border-radius: 10px;
-            margin-bottom: 25px;
+
+            margin-bottom: 20px;
+
             line-height: 1.7;
+        }
+
+
+        /* =====================================================
+           M2 INFORMATION GRID
+           ===================================================== */
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 15px;
+
+            margin-top: 18px;
+        }
+
+
+        .info-box {
+
+            background: #f8f9fb;
+
+            border: 1px solid #ddd;
+
+            border-radius: 10px;
+
+            padding: 18px;
+        }
+
+
+        .info-title {
+
+            color: #666;
+
+            font-weight: bold;
+
+            font-size: 15px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .info-value {
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            overflow-wrap: anywhere;
         }
 
 
@@ -160,11 +269,40 @@
            ===================================================== */
 
         .answer {
+
             background: #f1f1f1;
-            padding: 20px;
+
             border-radius: 10px;
-            font-size: 19px;
-            line-height: 1.5;
+
+            padding: 22px;
+
+            font-size: 18px;
+
+            line-height: 1.7;
+
+            white-space: pre-line;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        /* =====================================================
+           LOW CONFIDENCE
+           ===================================================== */
+
+        .low-confidence {
+
+            background: #fff5e5;
+
+            border: 1px solid #e4c27a;
+
+            border-radius: 10px;
+
+            padding: 20px;
+
+            font-size: 18px;
+
+            line-height: 1.6;
         }
 
 
@@ -173,41 +311,46 @@
            ===================================================== */
 
         .source {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 18px;
-            margin: 15px 0;
+
             background: #fafafa;
+
+            border: 1px solid #ddd;
+
+            border-radius: 10px;
+
+            padding: 20px;
+
+            margin-top: 15px;
         }
 
+
         .source h3 {
+
             margin-top: 0;
         }
 
-        .source a {
-            color: #0066cc;
-            font-weight: bold;
-            text-decoration: none;
+
+        .source p {
+
+            margin: 10px 0;
         }
+
+
+        .source a {
+
+            color: #0066cc;
+
+            font-weight: bold;
+
+            text-decoration: none;
+
+            overflow-wrap: anywhere;
+        }
+
 
         .source a:hover {
+
             text-decoration: underline;
-        }
-
-
-        /* =====================================================
-           VOICE
-           ===================================================== */
-
-        .voice-buttons {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        #speechStatus {
-            margin-top: 15px;
-            font-weight: bold;
         }
 
 
@@ -216,10 +359,12 @@
            ===================================================== */
 
         footer {
+
             text-align: center;
-            color: #666;
-            margin-top: 30px;
-            padding-bottom: 20px;
+
+            color: #777;
+
+            padding: 20px;
         }
 
 
@@ -227,27 +372,24 @@
            MOBILE
            ===================================================== */
 
-        @media (max-width: 700px) {
+        @media (
+            max-width: 700px
+        ) {
 
-            .container {
-                width: 94%;
+            .grid {
+
+                grid-template-columns: 1fr;
             }
 
-            .header h1 {
-                font-size: 30px;
-            }
 
             .question-row {
+
                 flex-direction: column;
-                align-items: stretch;
             }
 
-            .question-row input[type="text"] {
-                width: 100%;
-                box-sizing: border-box;
-            }
 
             .question-row button {
+
                 width: 100%;
             }
 
@@ -260,6 +402,7 @@
 
 <body>
 
+
 <div class="container">
 
 
@@ -267,33 +410,32 @@
          HEADER
          ===================================================== -->
 
-    <header class="header">
+    <div class="header">
 
         <h1>
             🤖 AI Knowledge Retrieval Platform
         </h1>
 
-        <p class="subtitle">
+        <p>
             Development of AI-Based Knowledge Retrieval Platform
             with Query Resolution System
         </p>
 
-    </header>
+    </div>
 
 
     <!-- =====================================================
-         UPLOAD FOUR DOCUMENTS
+         KNOWLEDGE BASE
          ===================================================== -->
 
-    <section class="card">
+    <div class="card">
 
         <h2>
-            📚 Upload Knowledge Base Documents
+            📚 Knowledge Base
         </h2>
 
         <p>
-            Select one PDF, one DOCX, one TXT, and one CSV file,
-            then upload all four together.
+            Upload PDF, DOCX, TXT and CSV documents.
         </p>
 
 
@@ -310,105 +452,113 @@
             >
 
 
-            <!-- PDF -->
-
             <div class="file-box">
 
-                <label for="pdf_file">
+                <label>
                     📄 PDF Document
                 </label>
 
                 <input
                     type="file"
-                    id="pdf_file"
                     name="pdf_file"
                     accept=".pdf"
-                    required
                 >
 
             </div>
 
 
-            <!-- DOCX -->
-
             <div class="file-box">
 
-                <label for="docx_file">
+                <label>
                     📝 DOCX Document
                 </label>
 
                 <input
                     type="file"
-                    id="docx_file"
                     name="docx_file"
                     accept=".docx"
-                    required
                 >
 
             </div>
 
 
-            <!-- TXT -->
-
             <div class="file-box">
 
-                <label for="txt_file">
+                <label>
                     📃 TXT Document
                 </label>
 
                 <input
                     type="file"
-                    id="txt_file"
                     name="txt_file"
                     accept=".txt"
-                    required
                 >
 
             </div>
 
 
-            <!-- CSV -->
-
             <div class="file-box">
 
-                <label for="csv_file">
+                <label>
                     📊 CSV Document
                 </label>
 
                 <input
                     type="file"
-                    id="csv_file"
                     name="csv_file"
                     accept=".csv"
-                    required
                 >
 
             </div>
 
 
-            <button
-                type="submit"
-                class="primary-button"
-            >
-                📥 Upload All 4 Documents
+            <button type="submit">
+                📥 Upload Documents
             </button>
 
         </form>
 
-    </section>
+    </div>
 
 
     <!-- =====================================================
-         STATUS MESSAGE
+         UPLOAD STATUS
+         ===================================================== -->
+
+    {% if upload_results %}
+
+    <div class="card">
+
+        <h2>
+            📌 Upload Status
+        </h2>
+
+
+        {% for upload in upload_results %}
+
+        <p>
+            {{ upload | safe }}
+        </p>
+
+        {% endfor %}
+
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         MESSAGE
          ===================================================== -->
 
     {% if message %}
 
-    <section class="message">
+    <div class="message">
 
         {{ message | safe }}
 
-    </section>
+    </div>
 
     {% endif %}
 
@@ -417,7 +567,7 @@
          ASK QUESTION
          ===================================================== -->
 
-    <section class="card">
+    <div class="card">
 
         <h2>
             💬 Ask a Question
@@ -427,7 +577,6 @@
         <form
             method="POST"
             action="/"
-            id="questionForm"
         >
 
             <input
@@ -442,62 +591,313 @@
                 <input
                     type="text"
                     name="question"
-                    id="questionInput"
+                    value="{{ question or '' }}"
                     placeholder="Enter your question..."
                     autocomplete="off"
                     required
                 >
 
-                <button
-                    type="submit"
-                    class="primary-button"
-                >
+
+                <button type="submit">
+
                     🔎 Ask Question
+
                 </button>
 
             </div>
 
         </form>
 
-    </section>
+    </div>
 
 
     <!-- =====================================================
-         ANSWER
+         M2 RESULTS
          ===================================================== -->
 
-    {% if answer %}
+    {% if result %}
 
-    <section class="card">
+
+    <!-- =====================================================
+         QUERY UNDERSTANDING
+         ===================================================== -->
+
+    <div class="card">
 
         <h2>
-            ✅ Answer
+            🧠 Query Understanding Agent
         </h2>
 
 
-        <div class="answer">
+        {% set classification =
+            result.get(
+                "classification",
+                {}
+            )
+        %}
 
-            {{ answer }}
+
+        {% set retrieval =
+            result.get(
+                "retrieval",
+                {}
+            )
+        %}
+
+
+        <div class="grid">
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Query Type
+                </div>
+
+                <div class="info-value">
+
+                    {{ result.get(
+                        "query_type",
+                        "Unknown"
+                    ) | title }}
+
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Classification Confidence
+                </div>
+
+                <div class="info-value">
+
+                    {{ classification.get(
+                        "classification_confidence",
+                        "N/A"
+                    ) }}
+
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Routing
+                </div>
+
+                <div class="info-value">
+
+                    {{ classification.get(
+                        "routing",
+                        "N/A"
+                    ) }}
+
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Retrieval Status
+                </div>
+
+                <div class="info-value">
+
+                    {{ retrieval.get(
+                        "status",
+                        "Unknown"
+                    ) | title }}
+
+                </div>
+
+            </div>
+
 
         </div>
 
-    </section>
+    </div>
+
+
+    <!-- =====================================================
+         RESPONSE GENERATION
+         ===================================================== -->
+
+    <div class="card">
+
+        <h2>
+            ✅ Response Generation Agent
+        </h2>
+
+
+        {% if result.get("status") == "success" %}
+
+        <div class="answer">
+
+            {{ result.get(
+                "answer",
+                "No answer generated."
+            ) }}
+
+        </div>
+
+
+        <div class="grid">
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Confidence
+                </div>
+
+                <div class="info-value">
+
+                    {{ result.get(
+                        "confidence",
+                        "Low"
+                    ) }}
+
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Confidence Score
+                </div>
+
+                <div class="info-value">
+
+                    {{ result.get(
+                        "confidence_score",
+                        0.0
+                    ) }}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        {% else %}
+
+        <div class="low-confidence">
+
+            {{ result.get(
+                "answer",
+                result.get(
+                    "message",
+                    "No sufficiently relevant information was found."
+                )
+            ) }}
+
+        </div>
+
+
+        <div class="grid">
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Confidence
+                </div>
+
+                <div class="info-value">
+                    Low
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div class="info-title">
+                    Confidence Score
+                </div>
+
+                <div class="info-value">
+                    0.0
+                </div>
+
+            </div>
+
+
+        </div>
+
+        {% endif %}
+
+    </div>
 
 
     <!-- =====================================================
          RETRIEVED SOURCES
          ===================================================== -->
 
-    {% if sources %}
+    {% set retrieved_results =
+        retrieval.get(
+            "results",
+            []
+        )
+    %}
 
-    <section class="card">
+
+    {% if retrieved_results %}
+
+    <div class="card">
 
         <h2>
             📚 Retrieved Sources
         </h2>
 
+        <p>
+            Top-K chunks ranked by relevance.
+        </p>
 
-        {% for source in sources %}
+
+        {% for item in retrieved_results %}
+
+
+        {% set metadata =
+            item.get(
+                "metadata",
+                {}
+            ) or {}
+        %}
+
+
+        {% set source_name =
+            item.get(
+                "source"
+            )
+            or metadata.get(
+                "source"
+            )
+            or metadata.get(
+                "filename"
+            )
+            or "Unknown"
+        %}
+
+
+        {% set stored_name =
+            metadata.get(
+                "stored_filename",
+                ""
+            )
+        %}
+
 
         <div class="source">
 
@@ -513,33 +913,42 @@
                 </strong>
 
 
-                {% if source.stored_filename %}
+                {% if stored_name %}
 
                 <a
                     href="{{ url_for(
-                        'open_source',
-                        filename=source.stored_filename
+                        'source',
+                        filename=stored_name
                     ) }}"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
 
-                    📄 {{ source.source }}
+                    📄 {{ source_name }}
 
                 </a>
 
+
                 {% else %}
+
+                {% set source_path =
+                    source_name.replace(
+                        "\\",
+                        "/"
+                    )
+                %}
+
 
                 <a
                     href="{{ url_for(
-                        'open_source',
-                        filename=source.source
+                        'source',
+                        filename=source_path
                     ) }}"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
 
-                    📄 {{ source.source }}
+                    📄 {{ source_name }}
 
                 </a>
 
@@ -551,60 +960,76 @@
             <p>
 
                 <strong>
-                    Distance:
+                    Chunk ID:
                 </strong>
 
-                {{ source.distance }}
+                {{ item.get(
+                    "chunk_id",
+                    metadata.get(
+                        "chunk_index",
+                        "Unknown"
+                    )
+                ) }}
 
             </p>
+
+
+            <p>
+
+                <strong>
+                    Page / Section:
+                </strong>
+
+                {{ item.get(
+                    "page",
+                    metadata.get(
+                        "page",
+                        "Unknown"
+                    )
+                ) }}
+
+            </p>
+
+
+            <p>
+
+                <strong>
+                    Relevance Score:
+                </strong>
+
+                {{ item.get(
+                    "relevance_score",
+                    0.0
+                ) }}
+
+            </p>
+
+
+            <p>
+
+                <strong>
+                    Rank:
+                </strong>
+
+                {{ item.get(
+                    "rank",
+                    loop.index
+                ) }}
+
+            </p>
+
 
         </div>
 
         {% endfor %}
 
-    </section>
+
+    </div>
 
     {% endif %}
 
+
     {% endif %}
-
-
-    <!-- =====================================================
-         VOICE INTERACTION
-         ===================================================== -->
-
-    <section class="card">
-
-        <h2>
-            🎤 Voice Interaction
-        </h2>
-
-
-        <div class="voice-buttons">
-
-            <button
-                type="button"
-                onclick="startListening()"
-            >
-                🎤 Speak Question
-            </button>
-
-
-            <button
-                type="button"
-                onclick="speakAnswer()"
-            >
-                🔊 Read Answer
-            </button>
-
-        </div>
-
-
-        <p id="speechStatus">
-            Voice controls are ready.
-        </p>
-
-    </section>
 
 
     <!-- =====================================================
@@ -621,15 +1046,6 @@
 
 
 </div>
-
-
-<!-- =========================================================
-     JAVASCRIPT
-     ========================================================= -->
-
-<script
-    src="{{ url_for('static', filename='script.js') }}"
-></script>
 
 
 </body>

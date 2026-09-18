@@ -1,7 +1,13 @@
-from flask import Flask, render_template, request, send_from_directory
 import os
 import sys
 import uuid
+
+from flask import (
+    Flask,
+    render_template,
+    request,
+    send_from_directory
+)
 
 
 # ============================================================
@@ -22,7 +28,6 @@ UPLOAD_FOLDER = os.path.join(
     "uploads"
 )
 
-# Create uploads folder automatically
 os.makedirs(
     UPLOAD_FOLDER,
     exist_ok=True
@@ -30,10 +35,11 @@ os.makedirs(
 
 
 # ============================================================
-# ADD SRC TO PYTHON PATH
+# PYTHON PATH
 # ============================================================
 
 if SRC_DIR not in sys.path:
+
     sys.path.insert(
         0,
         SRC_DIR
@@ -41,7 +47,7 @@ if SRC_DIR not in sys.path:
 
 
 # ============================================================
-# IMPORT PROJECT MODULES
+# PROJECT MODULES
 # ============================================================
 
 from document_loader import load_document
@@ -58,9 +64,7 @@ from vector_store import (
     add_documents
 )
 
-from agents.orchestrator import (
-    MultiAgentOrchestrator
-)
+from agents.orchestrator import Orchestrator
 
 
 # ============================================================
@@ -69,11 +73,9 @@ from agents.orchestrator import (
 
 app = Flask(__name__)
 
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
 
 # ============================================================
-# LOAD MODELS ONCE
+# LOAD MODEL
 # ============================================================
 
 print("Loading embedding model...")
@@ -83,23 +85,15 @@ embedding_model = load_embedding_model()
 print("Embedding model loaded successfully.")
 
 
+# ============================================================
+# LOAD M2 ORCHESTRATOR
+# ============================================================
+
 print("Loading multi-agent system...")
 
-orchestrator = MultiAgentOrchestrator()
+orchestrator = Orchestrator()
 
 print("Multi-agent system loaded successfully.")
-
-
-# ============================================================
-# ALLOWED FILE TYPES
-# ============================================================
-
-ALLOWED_EXTENSIONS = {
-    ".pdf": "PDF",
-    ".docx": "DOCX",
-    ".txt": "TXT",
-    ".csv": "CSV"
-}
 
 
 # ============================================================
@@ -112,457 +106,452 @@ ALLOWED_EXTENSIONS = {
 )
 def index():
 
+    # Default values
     answer = None
-
-    sources = []
-
+    result = None
     message = None
+    question = ""
+    upload_results = []
 
 
     # ========================================================
-    # POST REQUEST
+    # GET
     # ========================================================
 
-    if request.method == "POST":
+    if request.method == "GET":
 
-        action = request.form.get(
-            "action"
+        return render_template(
+            "index.html",
+            answer=None,
+            result=None,
+            message=None,
+            question="",
+            upload_results=[]
         )
 
 
-        # ====================================================
-        # UPLOAD FOUR DOCUMENTS
-        # ====================================================
-
-        if action == "upload":
-
-            files_to_process = [
-
-                (
-                    "PDF",
-                    request.files.get(
-                        "pdf_file"
-                    )
-                ),
-
-                (
-                    "DOCX",
-                    request.files.get(
-                        "docx_file"
-                    )
-                ),
-
-                (
-                    "TXT",
-                    request.files.get(
-                        "txt_file"
-                    )
-                ),
-
-                (
-                    "CSV",
-                    request.files.get(
-                        "csv_file"
-                    )
-                )
-
-            ]
-
-
-            upload_results = []
-
-            successful_count = 0
-
-
-            # =================================================
-            # PROCESS ALL FOUR FILES
-            # =================================================
-
-            for file_type, uploaded_file in files_to_process:
-
-                # No file selected
-                if (
-                    uploaded_file is None
-                    or uploaded_file.filename.strip() == ""
-                ):
-
-                    upload_results.append(
-                        f"⚠️ {file_type}: No file selected."
-                    )
-
-                    continue
-
-
-                original_filename = (
-                    uploaded_file.filename
-                )
-
-
-                # ------------------------------------------------
-                # Validate extension
-                # ------------------------------------------------
-
-                extension = os.path.splitext(
-                    original_filename
-                )[1].lower()
-
-
-                if extension not in ALLOWED_EXTENSIONS:
-
-                    upload_results.append(
-                        f"❌ {original_filename}: "
-                        f"Unsupported file type."
-                    )
-
-                    continue
-
-
-                # ------------------------------------------------
-                # Unique stored filename
-                # ------------------------------------------------
-
-                stored_filename = (
-                    f"{uuid.uuid4().hex[:8]}_"
-                    f"{original_filename}"
-                )
-
-
-                save_path = os.path.join(
-                    UPLOAD_FOLDER,
-                    stored_filename
-                )
-
-
-                try:
-
-                    # --------------------------------------------
-                    # Save file
-                    # --------------------------------------------
-
-                    uploaded_file.save(
-                        save_path
-                    )
-
-
-                    # --------------------------------------------
-                    # Extract text
-                    # --------------------------------------------
-
-                    text = load_document(
-                        save_path
-                    )
-
-
-                    # --------------------------------------------
-                    # Clean text
-                    # --------------------------------------------
-
-                    text = clean_text(
-                        text
-                    )
-
-
-                    # --------------------------------------------
-                    # Create chunks
-                    # --------------------------------------------
-
-                    chunks = split_text(
-                        text
-                    )
-
-
-                    if not chunks:
-
-                        upload_results.append(
-                            f"❌ {original_filename}: "
-                            f"No text could be extracted."
-                        )
-
-                        continue
-
-
-                    # --------------------------------------------
-                    # Generate embeddings
-                    # --------------------------------------------
-
-                    embeddings = generate_embeddings(
-                        embedding_model,
-                        chunks
-                    )
-
-
-                    # --------------------------------------------
-                    # Open ChromaDB
-                    # --------------------------------------------
-
-                    collection = create_vector_store()
-
-
-                    # --------------------------------------------
-                    # Unique document ID
-                    # --------------------------------------------
-
-                    document_id = (
-                        uuid.uuid4().hex[:8]
-                    )
-
-
-                    # --------------------------------------------
-                    # Metadata + IDs
-                    # --------------------------------------------
-
-                    metadatas = []
-
-                    ids = []
-
-
-                    for index in range(
-                        len(chunks)
-                    ):
-
-                        metadatas.append(
-                            {
-                                "source":
-                                    original_filename,
-
-                                "stored_filename":
-                                    stored_filename,
-
-                                "file_type":
-                                    file_type,
-
-                                "chunk_index":
-                                    index,
-
-                                "document_id":
-                                    document_id
-                            }
-                        )
-
-
-                        ids.append(
-                            f"{document_id}_{index}"
-                        )
-
-
-                    # --------------------------------------------
-                    # Add chunks to ChromaDB
-                    # --------------------------------------------
-
-                    add_documents(
-                        collection,
-                        chunks,
-                        embeddings,
-                        metadatas,
-                        ids
-                    )
-
-
-                    successful_count += 1
-
-
-                    upload_results.append(
-                        f"✅ <strong>{file_type}</strong> — "
-                        f"{original_filename} — "
-                        f"{len(chunks)} chunks indexed."
-                    )
-
-
-                except Exception as e:
-
-                    upload_results.append(
-                        f"❌ <strong>{file_type}</strong> — "
-                        f"{original_filename} — "
-                        f"Error: {e}"
-                    )
-
-
-            # =================================================
-            # UPLOAD SUMMARY
-            # =================================================
-
-            if successful_count == 4:
-
-                upload_results.append(
-                    "<br>🎉 <strong>"
-                    "All 4 documents were successfully "
-                    "processed and indexed!"
-                    "</strong>"
-                )
-
-            elif successful_count > 0:
-
-                upload_results.append(
-                    f"<br>⚠️ <strong>"
-                    f"{successful_count} of 4 documents "
-                    f"were successfully processed."
-                    "</strong>"
-                )
-
-            else:
-
-                upload_results.append(
-                    "<br>❌ No documents were indexed."
-                )
-
-
-            message = "<br>".join(
-                upload_results
-            )
-
-
-        # ====================================================
-        # ASK QUESTION
-        # ====================================================
-
-        elif action == "ask":
-
-            question = request.form.get(
-                "question",
-                ""
-            ).strip()
-
-
-            if not question:
-
-                message = (
-                    "❌ Please enter a question."
-                )
-
-
-            else:
-
-                try:
-
-                    # --------------------------------------------
-                    # Multi-agent query processing
-                    # --------------------------------------------
-
-                    result = (
-                        orchestrator.process_query(
-                            question
-                        )
-                    )
-
-
-                    # --------------------------------------------
-                    # Answer
-                    # --------------------------------------------
-
-                    answer = result.get(
-                        "answer",
-                        "No answer generated."
-                    )
-
-
-                    # --------------------------------------------
-                    # Retrieved results
-                    # --------------------------------------------
-
-                    retrieved_results = (
-                        result.get(
-                            "results",
-                            []
-                        )
-                    )
-
-
-                    for item in retrieved_results:
-
-                        metadata = item.get(
-                            "metadata",
-                            {}
-                        )
-
-
-                        source = metadata.get(
-                            "source",
-                            "Unknown"
-                        )
-
-
-                        stored_filename = metadata.get(
-                            "stored_filename",
-                            ""
-                        )
-
-
-                        sources.append(
-                            {
-                                "source":
-                                    source,
-
-                                "stored_filename":
-                                    stored_filename,
-
-                                "distance":
-                                    item.get(
-                                        "distance",
-                                        "N/A"
-                                    )
-                            }
-                        )
-
-
-                except Exception as e:
-
-                    message = (
-                        f"❌ Question processing error: {e}"
-                    )
+    # ========================================================
+    # POST ACTION
+    # ========================================================
+
+    action = request.form.get(
+        "action",
+        ""
+    )
 
 
     # ========================================================
-    # RENDER PAGE
+    # UPLOAD DOCUMENTS
+    # ========================================================
+
+    if action == "upload":
+
+        files = [
+
+            (
+                "PDF",
+                request.files.get(
+                    "pdf_file"
+                )
+            ),
+
+            (
+                "DOCX",
+                request.files.get(
+                    "docx_file"
+                )
+            ),
+
+            (
+                "TXT",
+                request.files.get(
+                    "txt_file"
+                )
+            ),
+
+            (
+                "CSV",
+                request.files.get(
+                    "csv_file"
+                )
+            )
+
+        ]
+
+
+        success_count = 0
+
+
+        for file_type, uploaded_file in files:
+
+            # ------------------------------------------------
+            # No file
+            # ------------------------------------------------
+
+            if (
+                uploaded_file is None
+                or not uploaded_file.filename
+            ):
+
+                upload_results.append(
+                    f"⚠️ {file_type}: No file selected."
+                )
+
+                continue
+
+
+            original_filename = (
+                uploaded_file.filename
+            )
+
+
+            # ------------------------------------------------
+            # Check extension
+            # ------------------------------------------------
+
+            extension = os.path.splitext(
+                original_filename
+            )[1].lower()
+
+
+            if extension not in [
+                ".pdf",
+                ".docx",
+                ".txt",
+                ".csv"
+            ]:
+
+                upload_results.append(
+                    f"❌ {original_filename}: "
+                    f"Unsupported file type."
+                )
+
+                continue
+
+
+            # ------------------------------------------------
+            # Create unique stored filename
+            # ------------------------------------------------
+
+            stored_filename = (
+                uuid.uuid4().hex[:8]
+                + "_"
+                + original_filename
+            )
+
+
+            save_path = os.path.join(
+                UPLOAD_FOLDER,
+                stored_filename
+            )
+
+
+            try:
+
+                # ============================================
+                # SAVE FILE
+                # ============================================
+
+                uploaded_file.save(
+                    save_path
+                )
+
+
+                # ============================================
+                # EXTRACT TEXT
+                # ============================================
+
+                text = load_document(
+                    save_path
+                )
+
+
+                # ============================================
+                # CLEAN TEXT
+                # ============================================
+
+                text = clean_text(
+                    text
+                )
+
+
+                # ============================================
+                # CHUNK TEXT
+                # ============================================
+
+                chunks = split_text(
+                    text
+                )
+
+
+                if not chunks:
+
+                    upload_results.append(
+                        f"❌ {original_filename}: "
+                        f"No text could be extracted."
+                    )
+
+                    continue
+
+
+                # ============================================
+                # GENERATE EMBEDDINGS
+                # ============================================
+
+                embeddings = generate_embeddings(
+                    embedding_model,
+                    chunks
+                )
+
+
+                # ============================================
+                # VECTOR STORE
+                # ============================================
+
+                collection = create_vector_store()
+
+
+                # ============================================
+                # DOCUMENT ID
+                # ============================================
+
+                document_id = (
+                    uuid.uuid4().hex[:8]
+                )
+
+
+                ids = []
+                metadatas = []
+
+
+                for index in range(
+                    len(chunks)
+                ):
+
+                    ids.append(
+                        f"{document_id}_{index}"
+                    )
+
+
+                    metadatas.append(
+                        {
+                            "source":
+                                original_filename,
+
+                            "stored_filename":
+                                stored_filename,
+
+                            "file_type":
+                                file_type,
+
+                            "chunk_index":
+                                index,
+
+                            "document_id":
+                                document_id
+                        }
+                    )
+
+
+                # ============================================
+                # ADD TO CHROMADB
+                # ============================================
+
+                add_documents(
+                    collection,
+                    chunks,
+                    embeddings,
+                    metadatas,
+                    ids
+                )
+
+
+                success_count += 1
+
+
+                upload_results.append(
+                    f"✅ <strong>{file_type}</strong>: "
+                    f"{original_filename} "
+                    f"— {len(chunks)} chunks indexed."
+                )
+
+
+            except Exception as error:
+
+                upload_results.append(
+                    f"❌ <strong>{file_type}</strong>: "
+                    f"{original_filename} "
+                    f"— {error}"
+                )
+
+
+        # ====================================================
+        # UPLOAD SUMMARY
+        # ====================================================
+
+        if success_count == 4:
+
+            upload_results.append(
+                "<br>🎉 <strong>"
+                "All 4 documents were successfully "
+                "processed and indexed!"
+                "</strong>"
+            )
+
+        elif success_count > 0:
+
+            upload_results.append(
+                f"<br>⚠️ <strong>"
+                f"{success_count} of 4 documents "
+                f"were successfully indexed."
+                "</strong>"
+            )
+
+        else:
+
+            upload_results.append(
+                "<br>❌ <strong>"
+                "No documents were indexed."
+                "</strong>"
+            )
+
+
+        return render_template(
+            "index.html",
+            answer=None,
+            result=None,
+            message=None,
+            question="",
+            upload_results=upload_results
+        )
+
+
+    # ========================================================
+    # ASK QUESTION
+    # ========================================================
+
+    if action == "ask":
+
+        question = request.form.get(
+            "question",
+            ""
+        ).strip()
+
+
+        if not question:
+
+            return render_template(
+                "index.html",
+                answer=None,
+                result=None,
+                message="❌ Please enter a question.",
+                question="",
+                upload_results=[]
+            )
+
+
+        try:
+
+            # ================================================
+            # M2 MULTI-AGENT PIPELINE
+            # ================================================
+
+            result = orchestrator.process_query(
+                question
+            )
+
+
+            answer = result.get(
+                "answer",
+                "No answer generated."
+            )
+
+
+            return render_template(
+                "index.html",
+                answer=answer,
+                result=result,
+                message=None,
+                question=question,
+                upload_results=[]
+            )
+
+
+        except Exception as error:
+
+            return render_template(
+                "index.html",
+                answer=None,
+                result=None,
+                message=(
+                    f"❌ Question processing error: "
+                    f"{error}"
+                ),
+                question=question,
+                upload_results=[]
+            )
+
+
+    # ========================================================
+    # UNKNOWN ACTION
     # ========================================================
 
     return render_template(
         "index.html",
-        answer=answer,
-        sources=sources,
-        message=message
+        answer=None,
+        result=None,
+        message="❌ Unknown action.",
+        question=question,
+        upload_results=[]
     )
 
 
 # ============================================================
-# OPEN RETRIEVED SOURCE
+# SOURCE FILE ROUTE
 # ============================================================
 
 @app.route(
-    "/source/<path:filename>"
+    "/source/<path:filename>",
+    methods=["GET"]
 )
-def open_source(filename):
+def source(filename):
 
-    # Normalize Windows backslashes
+    # Convert URL slash to Windows slash
     filename = filename.replace(
-        "\\",
-        "/"
+        "/",
+        os.sep
     )
 
 
-    # --------------------------------------------------------
-    # Uploaded document
-    # --------------------------------------------------------
+    # ========================================================
+    # CHECK UPLOADED FILE
+    # ========================================================
 
-    if "/" not in filename:
+    uploaded_name = os.path.basename(
+        filename
+    )
 
-        uploaded_path = os.path.join(
+    uploaded_path = os.path.join(
+        UPLOAD_FOLDER,
+        uploaded_name
+    )
+
+
+    if os.path.isfile(
+        uploaded_path
+    ):
+
+        return send_from_directory(
             UPLOAD_FOLDER,
-            filename
+            uploaded_name
         )
 
-        if os.path.isfile(
-            uploaded_path
-        ):
 
-            return send_from_directory(
-                UPLOAD_FOLDER,
-                filename
-            )
-
-
-    # --------------------------------------------------------
-    # Existing project knowledge-base document
-    # --------------------------------------------------------
+    # ========================================================
+    # CHECK ORIGINAL PROJECT FILE
+    # Example:
+    # data/technology/artificial_intelligence.pdf
+    # ========================================================
 
     project_file = os.path.abspath(
         os.path.join(
@@ -613,7 +602,23 @@ def open_source(filename):
 
 
 # ============================================================
-# START FLASK SERVER
+# HEALTH CHECK
+# ============================================================
+
+@app.route(
+    "/health",
+    methods=["GET"]
+)
+def health():
+
+    return {
+        "status": "ok",
+        "service": "AI Knowledge Retrieval Platform"
+    }
+
+
+# ============================================================
+# START SERVER
 # ============================================================
 
 if __name__ == "__main__":
