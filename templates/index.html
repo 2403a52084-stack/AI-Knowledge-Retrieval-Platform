@@ -5,15 +5,9 @@
 
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>
-        AI Knowledge Retrieval Platform
-    </title>
-
+    <title>AI Knowledge Retrieval Platform</title>
 
     <style>
 
@@ -21,378 +15,264 @@
             box-sizing: border-box;
         }
 
-
         body {
-
             margin: 0;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
+            font-family: Arial, Helvetica, sans-serif;
             background: #f4f7fb;
-
             color: #222;
         }
 
-
         .container {
-
             width: 92%;
-
             max-width: 1100px;
-
             margin: 30px auto;
         }
 
-
-        /* =====================================================
-           HEADER
-           ===================================================== */
-
         .header {
-
             text-align: center;
-
             margin-bottom: 30px;
         }
 
-
         .header h1 {
-
             font-size: 38px;
-
             margin-bottom: 10px;
         }
 
-
         .header p {
-
             color: #666;
-
             font-size: 17px;
         }
 
-
-        /* =====================================================
-           CARD
-           ===================================================== */
-
         .card {
-
             background: white;
-
             padding: 25px;
-
             margin-bottom: 25px;
-
             border-radius: 15px;
-
-            box-shadow:
-                0 4px 15px
-                rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
-
         .card h2 {
-
             margin-top: 0;
-
             font-size: 26px;
         }
 
-
-        /* =====================================================
-           UPLOAD
-           ===================================================== */
-
         .file-box {
-
             background: #f8f9fb;
-
             border: 1px solid #ddd;
-
             border-radius: 10px;
-
             padding: 16px;
-
             margin: 12px 0;
         }
 
-
         .file-box label {
-
             display: block;
-
             font-weight: bold;
-
             margin-bottom: 8px;
         }
 
-
         .file-box input {
-
             width: 100%;
         }
 
-
-        /* =====================================================
-           BUTTON
-           ===================================================== */
-
-        button {
-
-            margin-top: 15px;
-
-            padding: 14px 22px;
-
-            border: none;
-
-            border-radius: 8px;
-
-            background: #333;
-
-            color: white;
-
-            font-size: 16px;
-
-            cursor: pointer;
-        }
-
-
-        button:hover {
-
-            opacity: 0.85;
-        }
-
-
-        /* =====================================================
-           QUESTION
-           ===================================================== */
-
         .question-row {
-
             display: flex;
-
             gap: 12px;
         }
 
-
         .question-row input {
-
             flex: 1;
-
             padding: 15px;
-
             border: 1px solid #ccc;
-
             border-radius: 8px;
-
             font-size: 17px;
         }
 
+        button {
+            padding: 14px 22px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
 
-        /* =====================================================
-           MESSAGE
-           ===================================================== */
+        button:hover {
+            opacity: 0.85;
+        }
 
         .message {
-
             background: #eef8ee;
-
             border: 1px solid #b8dfbf;
-
             padding: 18px;
-
             border-radius: 10px;
-
             margin-bottom: 20px;
-
             line-height: 1.7;
         }
 
-
-        /* =====================================================
-           M2 INFORMATION GRID
-           ===================================================== */
-
         .grid {
-
             display: grid;
-
-            grid-template-columns:
-                1fr 1fr;
-
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
-
             margin-top: 18px;
         }
 
-
         .info-box {
-
             background: #f8f9fb;
-
             border: 1px solid #ddd;
-
             border-radius: 10px;
-
             padding: 18px;
         }
 
-
         .info-title {
-
             color: #666;
-
             font-weight: bold;
-
             font-size: 15px;
-
             margin-bottom: 8px;
         }
 
-
         .info-value {
-
             font-size: 20px;
-
             font-weight: bold;
-
             overflow-wrap: anywhere;
         }
 
+        .clarification {
+            background: #fff8e8;
+            border: 1px solid #e2c46b;
+            border-radius: 12px;
+            padding: 22px;
+        }
 
-        /* =====================================================
-           ANSWER
-           ===================================================== */
+        .clarification-question {
+            font-size: 19px;
+            font-weight: bold;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .clarification-form {
+            display: flex;
+            gap: 12px;
+        }
+
+        .clarification-form input {
+            flex: 1;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 17px;
+        }
 
         .answer {
-
             background: #f1f1f1;
-
             border-radius: 10px;
-
             padding: 22px;
-
             font-size: 18px;
-
             line-height: 1.7;
-
             white-space: pre-line;
-
             overflow-wrap: anywhere;
         }
 
-
-        /* =====================================================
-           LOW CONFIDENCE
-           ===================================================== */
-
         .low-confidence {
-
             background: #fff5e5;
-
             border: 1px solid #e4c27a;
-
             border-radius: 10px;
-
             padding: 20px;
-
             font-size: 18px;
-
             line-height: 1.6;
         }
 
-
-        /* =====================================================
-           SOURCES
-           ===================================================== */
-
         .source {
-
             background: #fafafa;
-
             border: 1px solid #ddd;
-
             border-radius: 10px;
-
             padding: 20px;
-
             margin-top: 15px;
         }
 
-
         .source h3 {
-
             margin-top: 0;
         }
 
-
         .source p {
-
             margin: 10px 0;
         }
 
-
         .source a {
-
             color: #0066cc;
-
             font-weight: bold;
-
             text-decoration: none;
-
             overflow-wrap: anywhere;
         }
 
-
         .source a:hover {
-
             text-decoration: underline;
         }
 
+        details {
+            margin-top: 15px;
+            border-top: 1px solid #ddd;
+            padding-top: 12px;
+        }
 
-        /* =====================================================
-           FOOTER
-           ===================================================== */
+        summary {
+            cursor: pointer;
+            color: #0066cc;
+            font-weight: bold;
+            padding: 8px 0;
+        }
+
+        .evidence {
+            margin-top: 12px;
+            background: #f4f5f7;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 18px;
+            line-height: 1.7;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+
+        .voice-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #speechStatus {
+            color: #666;
+            margin-top: 15px;
+            font-weight: bold;
+        }
 
         footer {
-
             text-align: center;
-
             color: #777;
-
             padding: 20px;
         }
 
-
-        /* =====================================================
-           MOBILE
-           ===================================================== */
-
-        @media (
-            max-width: 700px
-        ) {
+        @media (max-width: 700px) {
 
             .grid {
-
                 grid-template-columns: 1fr;
             }
 
-
             .question-row {
-
                 flex-direction: column;
             }
 
-
-            .question-row button {
-
-                width: 100%;
+            .clarification-form {
+                flex-direction: column;
             }
 
+            .voice-buttons {
+                flex-direction: column;
+            }
+
+            .voice-buttons button {
+                width: 100%;
+            }
         }
 
     </style>
@@ -428,7 +308,7 @@
          KNOWLEDGE BASE
          ===================================================== -->
 
-    <div class="card">
+    <section class="card">
 
         <h2>
             📚 Knowledge Base
@@ -454,12 +334,13 @@
 
             <div class="file-box">
 
-                <label>
+                <label for="pdf_file">
                     📄 PDF Document
                 </label>
 
                 <input
                     type="file"
+                    id="pdf_file"
                     name="pdf_file"
                     accept=".pdf"
                 >
@@ -469,12 +350,13 @@
 
             <div class="file-box">
 
-                <label>
+                <label for="docx_file">
                     📝 DOCX Document
                 </label>
 
                 <input
                     type="file"
+                    id="docx_file"
                     name="docx_file"
                     accept=".docx"
                 >
@@ -484,12 +366,13 @@
 
             <div class="file-box">
 
-                <label>
+                <label for="txt_file">
                     📃 TXT Document
                 </label>
 
                 <input
                     type="file"
+                    id="txt_file"
                     name="txt_file"
                     accept=".txt"
                 >
@@ -499,12 +382,13 @@
 
             <div class="file-box">
 
-                <label>
+                <label for="csv_file">
                     📊 CSV Document
                 </label>
 
                 <input
                     type="file"
+                    id="csv_file"
                     name="csv_file"
                     accept=".csv"
                 >
@@ -518,47 +402,41 @@
 
         </form>
 
-    </div>
+    </section>
 
 
     <!-- =====================================================
-         UPLOAD STATUS
+         UPLOAD RESULTS
          ===================================================== -->
 
     {% if upload_results %}
 
-    <div class="card">
+    <section class="message">
 
-        <h2>
-            📌 Upload Status
-        </h2>
+        {% for item in upload_results %}
 
-
-        {% for upload in upload_results %}
-
-        <p>
-            {{ upload | safe }}
-        </p>
+        <div>
+            {{ item | safe }}
+        </div>
 
         {% endfor %}
 
-
-    </div>
+    </section>
 
     {% endif %}
 
 
     <!-- =====================================================
-         MESSAGE
+         GENERAL MESSAGE
          ===================================================== -->
 
     {% if message %}
 
-    <div class="message">
+    <section class="message">
 
         {{ message | safe }}
 
-    </div>
+    </section>
 
     {% endif %}
 
@@ -567,7 +445,7 @@
          ASK QUESTION
          ===================================================== -->
 
-    <div class="card">
+    <section class="card">
 
         <h2>
             💬 Ask a Question
@@ -591,58 +469,97 @@
                 <input
                     type="text"
                     name="question"
+                    id="questionInput"
                     value="{{ question or '' }}"
                     placeholder="Enter your question..."
                     autocomplete="off"
                     required
                 >
 
-
                 <button type="submit">
-
                     🔎 Ask Question
-
                 </button>
 
             </div>
 
         </form>
 
-    </div>
+    </section>
 
 
     <!-- =====================================================
-         M2 RESULTS
+         M3.1 CLARIFICATION AGENT
          ===================================================== -->
 
-    {% if result %}
+    {% if clarification_question %}
+
+    <section class="card">
+
+        <h2>
+            🧠 Clarification Agent
+        </h2>
+
+
+        <div class="clarification">
+
+            <div class="info-title">
+                Clarification Required
+            </div>
+
+
+            <div class="clarification-question">
+
+                {{ clarification_question }}
+
+            </div>
+
+
+            <form
+                method="POST"
+                action="/"
+                class="clarification-form"
+            >
+
+                <input
+                    type="hidden"
+                    name="action"
+                    value="clarify"
+                >
+
+
+                <input
+                    type="text"
+                    name="clarification_response"
+                    placeholder="Enter your clarification..."
+                    autocomplete="off"
+                    required
+                >
+
+
+                <button type="submit">
+                    ✅ Submit Clarification
+                </button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+    {% endif %}
 
 
     <!-- =====================================================
-         QUERY UNDERSTANDING
+         QUERY UNDERSTANDING AGENT
          ===================================================== -->
 
-    <div class="card">
+    {% if result and result.get("classification") %}
+
+    <section class="card">
 
         <h2>
             🧠 Query Understanding Agent
         </h2>
-
-
-        {% set classification =
-            result.get(
-                "classification",
-                {}
-            )
-        %}
-
-
-        {% set retrieval =
-            result.get(
-                "retrieval",
-                {}
-            )
-        %}
 
 
         <div class="grid">
@@ -655,12 +572,7 @@
                 </div>
 
                 <div class="info-value">
-
-                    {{ result.get(
-                        "query_type",
-                        "Unknown"
-                    ) | title }}
-
+                    {{ result.get("query_type", "Unknown") }}
                 </div>
 
             </div>
@@ -673,12 +585,15 @@
                 </div>
 
                 <div class="info-value">
-
-                    {{ classification.get(
-                        "classification_confidence",
-                        "N/A"
-                    ) }}
-
+                    {{
+                        result.get(
+                            "classification",
+                            {}
+                        ).get(
+                            "classification_confidence",
+                            0
+                        )
+                    }}
                 </div>
 
             </div>
@@ -691,12 +606,15 @@
                 </div>
 
                 <div class="info-value">
-
-                    {{ classification.get(
-                        "routing",
-                        "N/A"
-                    ) }}
-
+                    {{
+                        result.get(
+                            "classification",
+                            {}
+                        ).get(
+                            "routing",
+                            "Unknown"
+                        )
+                    }}
                 </div>
 
             </div>
@@ -709,44 +627,66 @@
                 </div>
 
                 <div class="info-value">
-
-                    {{ retrieval.get(
-                        "status",
-                        "Unknown"
-                    ) | title }}
-
+                    {{
+                        result.get(
+                            "retrieval",
+                            {}
+                        ).get(
+                            "status",
+                            "Unknown"
+                        )
+                    }}
                 </div>
 
             </div>
 
+        </div>
+
+
+        {% if result.get("refined_query") and
+              result.get("refined_query") != result.get("query") %}
+
+        <div
+            class="info-box"
+            style="margin-top:15px;"
+        >
+
+            <div class="info-title">
+                Refined Query
+            </div>
+
+            <div class="info-value">
+                {{ result.get("refined_query") }}
+            </div>
 
         </div>
 
-    </div>
+        {% endif %}
+
+    </section>
+
+    {% endif %}
 
 
     <!-- =====================================================
-         RESPONSE GENERATION
+         RESPONSE GENERATION AGENT
          ===================================================== -->
 
-    <div class="card">
+    {% if answer %}
+
+    <section class="card">
 
         <h2>
             ✅ Response Generation Agent
         </h2>
 
 
-        {% if result.get("status") == "success" %}
-
         <div class="answer">
-
-            {{ result.get(
-                "answer",
-                "No answer generated."
-            ) }}
-
+            {{ answer }}
         </div>
 
+
+        {% if result %}
 
         <div class="grid">
 
@@ -758,12 +698,7 @@
                 </div>
 
                 <div class="info-value">
-
-                    {{ result.get(
-                        "confidence",
-                        "Low"
-                    ) }}
-
+                    {{ result.get("confidence", "Low") }}
                 </div>
 
             </div>
@@ -776,260 +711,415 @@
                 </div>
 
                 <div class="info-value">
-
-                    {{ result.get(
-                        "confidence_score",
-                        0.0
-                    ) }}
-
+                    {{ result.get("confidence_score", 0) }}
                 </div>
 
             </div>
-
-
-        </div>
-
-
-        {% else %}
-
-        <div class="low-confidence">
-
-            {{ result.get(
-                "answer",
-                result.get(
-                    "message",
-                    "No sufficiently relevant information was found."
-                )
-            ) }}
-
-        </div>
-
-
-        <div class="grid">
-
-
-            <div class="info-box">
-
-                <div class="info-title">
-                    Confidence
-                </div>
-
-                <div class="info-value">
-                    Low
-                </div>
-
-            </div>
-
-
-            <div class="info-box">
-
-                <div class="info-title">
-                    Confidence Score
-                </div>
-
-                <div class="info-value">
-                    0.0
-                </div>
-
-            </div>
-
 
         </div>
 
         {% endif %}
 
-    </div>
+    </section>
+
+    {% endif %}
 
 
     <!-- =====================================================
-         RETRIEVED SOURCES
+         LOW CONFIDENCE
          ===================================================== -->
 
-    {% set retrieved_results =
-        retrieval.get(
-            "results",
-            []
-        )
-    %}
+    {% if result and result.get("retrieval") %}
+
+        {% set retrieval_status =
+            result.get("retrieval").get("status", "")
+        %}
+
+        {% if retrieval_status == "low_confidence" or
+              retrieval_status == "no_results" %}
+
+        <section class="card">
+
+            <div class="low-confidence">
+
+                ⚠️
+                {{
+                    result.get("retrieval").get(
+                        "message",
+                        "Sufficient information was not found."
+                    )
+                }}
+
+            </div>
+
+        </section>
+
+        {% endif %}
+
+    {% endif %}
 
 
-    {% if retrieved_results %}
+    <!-- =====================================================
+         M3.4 RESPONSE TRANSPARENCY
+         ===================================================== -->
 
-    <div class="card">
+    {% if result and result.get("retrieval") %}
+
+    <section class="card">
 
         <h2>
-            📚 Retrieved Sources
+            🔍 Response Transparency
         </h2>
 
         <p>
-            Top-K chunks ranked by relevance.
+            Evidence and source information supporting the response.
         </p>
 
 
-        {% for item in retrieved_results %}
+        {% if result.get("confidence") %}
 
+        <div class="info-box">
 
-        {% set metadata =
-            item.get(
-                "metadata",
-                {}
-            ) or {}
-        %}
+            <div class="info-title">
+                Application Confidence
+            </div>
 
-
-        {% set source_name =
-            item.get(
-                "source"
-            )
-            or metadata.get(
-                "source"
-            )
-            or metadata.get(
-                "filename"
-            )
-            or "Unknown"
-        %}
-
-
-        {% set stored_name =
-            metadata.get(
-                "stored_filename",
-                ""
-            )
-        %}
-
-
-        <div class="source">
-
-            <h3>
-                Result {{ loop.index }}
-            </h3>
-
-
-            <p>
-
-                <strong>
-                    Source:
-                </strong>
-
-
-                {% if stored_name %}
-
-                <a
-                    href="{{ url_for(
-                        'source',
-                        filename=stored_name
-                    ) }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-
-                    📄 {{ source_name }}
-
-                </a>
-
-
-                {% else %}
-
-                {% set source_path =
-                    source_name.replace(
-                        "\\",
-                        "/"
-                    )
-                %}
-
-
-                <a
-                    href="{{ url_for(
-                        'source',
-                        filename=source_path
-                    ) }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-
-                    📄 {{ source_name }}
-
-                </a>
-
-                {% endif %}
-
-            </p>
-
-
-            <p>
-
-                <strong>
-                    Chunk ID:
-                </strong>
-
-                {{ item.get(
-                    "chunk_id",
-                    metadata.get(
-                        "chunk_index",
-                        "Unknown"
-                    )
-                ) }}
-
-            </p>
-
-
-            <p>
-
-                <strong>
-                    Page / Section:
-                </strong>
-
-                {{ item.get(
-                    "page",
-                    metadata.get(
-                        "page",
-                        "Unknown"
-                    )
-                ) }}
-
-            </p>
-
-
-            <p>
-
-                <strong>
-                    Relevance Score:
-                </strong>
-
-                {{ item.get(
-                    "relevance_score",
-                    0.0
-                ) }}
-
-            </p>
-
-
-            <p>
-
-                <strong>
-                    Rank:
-                </strong>
-
-                {{ item.get(
-                    "rank",
-                    loop.index
-                ) }}
-
-            </p>
-
+            <div class="info-value">
+                {{ result.get("confidence") }}
+                —
+                {{ result.get("confidence_score", 0) }}
+            </div>
 
         </div>
 
-        {% endfor %}
+        {% endif %}
 
 
-    </div>
+        {% set retrieved_results =
+            result.get("retrieval").get("results", [])
+        %}
+
+
+        {% if retrieved_results %}
+
+            {% for item in retrieved_results %}
+
+                {% set metadata =
+                    item.get("metadata", {})
+                %}
+
+
+                <div class="source">
+
+                    <h3>
+                        📌 Citation [{{ loop.index }}]
+                    </h3>
+
+
+                    <p>
+
+                        <strong>
+                            Source Document:
+                        </strong>
+
+                        {% if metadata.get("stored_filename") %}
+
+                        <a
+                            href="{{ url_for(
+                                'source',
+                                filename=metadata.get(
+                                    'stored_filename'
+                                )
+                            ) }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            📄
+                            {{
+                                item.get(
+                                    "source",
+                                    metadata.get(
+                                        "source",
+                                        "Unknown"
+                                    )
+                                )
+                            }}
+                        </a>
+
+                        {% else %}
+
+                        <a
+                            href="{{ url_for(
+                                'source',
+                                filename=item.get(
+                                    'source',
+                                    metadata.get(
+                                        'source',
+                                        ''
+                                    )
+                                ).replace(
+                                    '\\',
+                                    '/'
+                                )
+                            ) }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            📄
+                            {{
+                                item.get(
+                                    "source",
+                                    metadata.get(
+                                        "source",
+                                        "Unknown"
+                                    )
+                                )
+                            }}
+                        </a>
+
+                        {% endif %}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Chunk ID:
+                        </strong>
+
+                        {{
+                            item.get(
+                                "chunk_id",
+                                metadata.get(
+                                    "chunk_index",
+                                    "Unknown"
+                                )
+                            )
+                        }}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Page / Section:
+                        </strong>
+
+                        {{
+                            item.get(
+                                "page",
+                                metadata.get(
+                                    "page",
+                                    metadata.get(
+                                        "page_number",
+                                        "Unknown"
+                                    )
+                                )
+                            )
+                        }}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Relevance Score:
+                        </strong>
+
+                        {{
+                            item.get(
+                                "relevance_score",
+                                0
+                            )
+                        }}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Rank:
+                        </strong>
+
+                        {{
+                            item.get(
+                                "rank",
+                                loop.index
+                            )
+                        }}
+
+                    </p>
+
+
+                    <details>
+
+                        <summary>
+                            🔎 View Retrieved Evidence
+                        </summary>
+
+
+                        <div class="evidence">
+
+                            {{
+                                item.get(
+                                    "text",
+                                    "No retrieved evidence available."
+                                )
+                            }}
+
+                        </div>
+
+                    </details>
+
+                </div>
+
+            {% endfor %}
+
+
+        {% else %}
+
+            <div class="low-confidence">
+
+                ⚠️ No supporting evidence was retrieved.
+
+            </div>
+
+        {% endif %}
+
+    </section>
 
     {% endif %}
 
 
-    {% endif %}
+    <!-- =====================================================
+         M3.2 CONVERSATION MEMORY
+         ===================================================== -->
+
+    <section class="card">
+
+        <h2>
+            🧠 Conversation Memory
+        </h2>
+
+
+        <p>
+            Stored conversation turns:
+            <strong>
+                {{ memory_size or 0 }}
+            </strong>
+        </p>
+
+
+        {% if memory_history %}
+
+            {% for turn in memory_history %}
+
+            <div class="source">
+
+                <h3>
+                    Turn {{ loop.index }}
+                </h3>
+
+
+                <p>
+
+                    <strong>
+                        Query:
+                    </strong>
+
+                    {{ turn.get("query", "") }}
+
+                </p>
+
+
+                {% if turn.get("topic") %}
+
+                <p>
+
+                    <strong>
+                        Topic:
+                    </strong>
+
+                    {{ turn.get("topic") }}
+
+                </p>
+
+                {% endif %}
+
+
+                {% if turn.get("response") %}
+
+                <details>
+
+                    <summary>
+                        View Previous Response
+                    </summary>
+
+                    <div class="evidence">
+
+                        {{ turn.get("response") }}
+
+                    </div>
+
+                </details>
+
+                {% endif %}
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+        <p>
+            No conversation history yet.
+        </p>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- =====================================================
+         M3.3 VOICE INTERACTION
+         ===================================================== -->
+
+    <section class="card">
+
+        <h2>
+            🎤 Voice Interaction
+        </h2>
+
+
+        <div class="voice-buttons">
+
+            <button
+                type="button"
+                onclick="startListening()"
+            >
+                🎤 Speak Question
+            </button>
+
+
+            <button
+                type="button"
+                onclick="speakAnswer()"
+            >
+                🔊 Read Answer
+            </button>
+
+        </div>
+
+
+        <p id="speechStatus">
+            Voice controls are ready.
+        </p>
+
+    </section>
 
 
     <!-- =====================================================
@@ -1038,14 +1128,19 @@
 
     <footer>
 
-        <p>
-            AI-Based Knowledge Retrieval Platform
-        </p>
+        AI-Based Knowledge Retrieval Platform
 
     </footer>
 
 
 </div>
+
+
+<!-- =========================================================
+     VOICE JAVASCRIPT
+     ========================================================= -->
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 
 
 </body>

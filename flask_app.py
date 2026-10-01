@@ -6,7 +6,8 @@ from flask import (
     Flask,
     render_template,
     request,
-    send_from_directory
+    send_from_directory,
+    session
 )
 
 
@@ -73,9 +74,14 @@ from agents.orchestrator import Orchestrator
 
 app = Flask(__name__)
 
+# Needed for storing pending clarification queries
+app.secret_key = (
+    "ai-knowledge-retrieval-m3-secret-key"
+)
+
 
 # ============================================================
-# LOAD MODEL
+# LOAD EMBEDDING MODEL
 # ============================================================
 
 print("Loading embedding model...")
@@ -86,7 +92,7 @@ print("Embedding model loaded successfully.")
 
 
 # ============================================================
-# LOAD M2 ORCHESTRATOR
+# LOAD MULTI-AGENT ORCHESTRATOR
 # ============================================================
 
 print("Loading multi-agent system...")
@@ -94,6 +100,23 @@ print("Loading multi-agent system...")
 orchestrator = Orchestrator()
 
 print("Multi-agent system loaded successfully.")
+
+
+# ============================================================
+# HELPER FUNCTION
+# ============================================================
+
+def get_memory_data():
+
+    history = (
+        orchestrator.memory_agent.get_history()
+    )
+
+    size = (
+        orchestrator.memory_agent.memory_size()
+    )
+
+    return history, size
 
 
 # ============================================================
@@ -106,16 +129,27 @@ print("Multi-agent system loaded successfully.")
 )
 def index():
 
-    # Default values
     answer = None
     result = None
     message = None
     question = ""
     upload_results = []
 
+    clarification_question = None
+    pending_query = None
+
 
     # ========================================================
-    # GET
+    # CURRENT MEMORY
+    # ========================================================
+
+    memory_history, memory_size = (
+        get_memory_data()
+    )
+
+
+    # ========================================================
+    # GET REQUEST
     # ========================================================
 
     if request.method == "GET":
@@ -126,12 +160,16 @@ def index():
             result=None,
             message=None,
             question="",
-            upload_results=[]
+            upload_results=[],
+            clarification_question=None,
+            pending_query=None,
+            memory_history=memory_history,
+            memory_size=memory_size
         )
 
 
     # ========================================================
-    # POST ACTION
+    # GET ACTION
     # ========================================================
 
     action = request.form.get(
@@ -185,7 +223,7 @@ def index():
         for file_type, uploaded_file in files:
 
             # ------------------------------------------------
-            # No file
+            # CHECK FILE
             # ------------------------------------------------
 
             if (
@@ -206,7 +244,7 @@ def index():
 
 
             # ------------------------------------------------
-            # Check extension
+            # VALIDATE EXTENSION
             # ------------------------------------------------
 
             extension = os.path.splitext(
@@ -230,7 +268,7 @@ def index():
 
 
             # ------------------------------------------------
-            # Create unique stored filename
+            # UNIQUE STORED FILENAME
             # ------------------------------------------------
 
             stored_filename = (
@@ -258,7 +296,7 @@ def index():
 
 
                 # ============================================
-                # EXTRACT TEXT
+                # LOAD DOCUMENT
                 # ============================================
 
                 text = load_document(
@@ -276,7 +314,7 @@ def index():
 
 
                 # ============================================
-                # CHUNK TEXT
+                # SPLIT INTO CHUNKS
                 # ============================================
 
                 chunks = split_text(
@@ -305,7 +343,7 @@ def index():
 
 
                 # ============================================
-                # VECTOR STORE
+                # CREATE VECTOR STORE
                 # ============================================
 
                 collection = create_vector_store()
@@ -323,6 +361,10 @@ def index():
                 ids = []
                 metadatas = []
 
+
+                # ============================================
+                # METADATA
+                # ============================================
 
                 for index in range(
                     len(chunks)
@@ -381,7 +423,7 @@ def index():
                 upload_results.append(
                     f"❌ <strong>{file_type}</strong>: "
                     f"{original_filename} "
-                    f"— {error}"
+                    f"— Error: {error}"
                 )
 
 
@@ -416,13 +458,22 @@ def index():
             )
 
 
+        memory_history, memory_size = (
+            get_memory_data()
+        )
+
+
         return render_template(
             "index.html",
             answer=None,
             result=None,
             message=None,
             question="",
-            upload_results=upload_results
+            upload_results=upload_results,
+            clarification_question=None,
+            pending_query=None,
+            memory_history=memory_history,
+            memory_size=memory_size
         )
 
 
@@ -446,14 +497,18 @@ def index():
                 result=None,
                 message="❌ Please enter a question.",
                 question="",
-                upload_results=[]
+                upload_results=[],
+                clarification_question=None,
+                pending_query=None,
+                memory_history=memory_history,
+                memory_size=memory_size
             )
 
 
         try:
 
             # ================================================
-            # M2 MULTI-AGENT PIPELINE
+            # PROCESS THROUGH ORCHESTRATOR
             # ================================================
 
             result = orchestrator.process_query(
@@ -461,9 +516,68 @@ def index():
             )
 
 
+            # ================================================
+            # CHECK CLARIFICATION
+            # ================================================
+
+            if result.get(
+                "status"
+            ) == "clarification_required":
+
+                clarification = result.get(
+                    "clarification",
+                    {}
+                )
+
+
+                clarification_question = (
+                    clarification.get(
+                        "follow_up_question",
+                        "Could you provide more details?"
+                    )
+                )
+
+
+                # Store pending original query
+                session["pending_query"] = (
+                    question
+                )
+
+
+                # Refresh memory information
+                memory_history, memory_size = (
+                    get_memory_data()
+                )
+
+
+                return render_template(
+                    "index.html",
+                    answer=None,
+                    result=result,
+                    message=None,
+                    question=question,
+                    upload_results=[],
+                    clarification_question=(
+                        clarification_question
+                    ),
+                    pending_query=question,
+                    memory_history=memory_history,
+                    memory_size=memory_size
+                )
+
+
+            # ================================================
+            # NORMAL RESPONSE
+            # ================================================
+
             answer = result.get(
                 "answer",
                 "No answer generated."
+            )
+
+
+            memory_history, memory_size = (
+                get_memory_data()
             )
 
 
@@ -473,11 +587,20 @@ def index():
                 result=result,
                 message=None,
                 question=question,
-                upload_results=[]
+                upload_results=[],
+                clarification_question=None,
+                pending_query=None,
+                memory_history=memory_history,
+                memory_size=memory_size
             )
 
 
         except Exception as error:
+
+            memory_history, memory_size = (
+                get_memory_data()
+            )
+
 
             return render_template(
                 "index.html",
@@ -488,7 +611,153 @@ def index():
                     f"{error}"
                 ),
                 question=question,
-                upload_results=[]
+                upload_results=[],
+                clarification_question=None,
+                pending_query=None,
+                memory_history=memory_history,
+                memory_size=memory_size
+            )
+
+
+    # ========================================================
+    # CLARIFICATION RESPONSE
+    # ========================================================
+
+    if action == "clarify":
+
+        clarification_response = (
+            request.form.get(
+                "clarification_response",
+                ""
+            ).strip()
+        )
+
+
+        pending_query = (
+            session.get(
+                "pending_query",
+                ""
+            ).strip()
+        )
+
+
+        # ----------------------------------------------------
+        # CHECK PENDING QUERY
+        # ----------------------------------------------------
+
+        if not pending_query:
+
+            return render_template(
+                "index.html",
+                answer=None,
+                result=None,
+                message=(
+                    "❌ No pending question was found."
+                ),
+                question="",
+                upload_results=[],
+                clarification_question=None,
+                pending_query=None,
+                memory_history=memory_history,
+                memory_size=memory_size
+            )
+
+
+        # ----------------------------------------------------
+        # CHECK CLARIFICATION RESPONSE
+        # ----------------------------------------------------
+
+        if not clarification_response:
+
+            return render_template(
+                "index.html",
+                answer=None,
+                result=None,
+                message=(
+                    "❌ Please provide the clarification."
+                ),
+                question=pending_query,
+                upload_results=[],
+                clarification_question=(
+                    "Please provide more details."
+                ),
+                pending_query=pending_query,
+                memory_history=memory_history,
+                memory_size=memory_size
+            )
+
+
+        try:
+
+            # ================================================
+            # PROCESS REFINED QUERY
+            # ================================================
+
+            result = orchestrator.process_query(
+                pending_query,
+                clarification_response
+            )
+
+
+            # ================================================
+            # CLEAR PENDING QUERY
+            # ================================================
+
+            session.pop(
+                "pending_query",
+                None
+            )
+
+
+            answer = result.get(
+                "answer",
+                "No answer generated."
+            )
+
+
+            memory_history, memory_size = (
+                get_memory_data()
+            )
+
+
+            return render_template(
+                "index.html",
+                answer=answer,
+                result=result,
+                message=None,
+                question=result.get(
+                    "refined_query",
+                    pending_query
+                ),
+                upload_results=[],
+                clarification_question=None,
+                pending_query=None,
+                memory_history=memory_history,
+                memory_size=memory_size
+            )
+
+
+        except Exception as error:
+
+            memory_history, memory_size = (
+                get_memory_data()
+            )
+
+
+            return render_template(
+                "index.html",
+                answer=None,
+                result=None,
+                message=(
+                    f"❌ Clarification processing error: "
+                    f"{error}"
+                ),
+                question=pending_query,
+                upload_results=[],
+                clarification_question=None,
+                pending_query=None,
+                memory_history=memory_history,
+                memory_size=memory_size
             )
 
 
@@ -496,13 +765,22 @@ def index():
     # UNKNOWN ACTION
     # ========================================================
 
+    memory_history, memory_size = (
+        get_memory_data()
+    )
+
+
     return render_template(
         "index.html",
         answer=None,
         result=None,
         message="❌ Unknown action.",
-        question=question,
-        upload_results=[]
+        question="",
+        upload_results=[],
+        clarification_question=None,
+        pending_query=None,
+        memory_history=memory_history,
+        memory_size=memory_size
     )
 
 
@@ -516,7 +794,7 @@ def index():
 )
 def source(filename):
 
-    # Convert URL slash to Windows slash
+    # Normalize path
     filename = filename.replace(
         "/",
         os.sep
@@ -549,8 +827,6 @@ def source(filename):
 
     # ========================================================
     # CHECK ORIGINAL PROJECT FILE
-    # Example:
-    # data/technology/artificial_intelligence.pdf
     # ========================================================
 
     project_file = os.path.abspath(
@@ -566,7 +842,10 @@ def source(filename):
     )
 
 
-    # Security check
+    # ========================================================
+    # SECURITY CHECK
+    # ========================================================
+
     if not project_file.startswith(
         project_root + os.sep
     ):
@@ -576,6 +855,10 @@ def source(filename):
             403
         )
 
+
+    # ========================================================
+    # SERVE FILE
+    # ========================================================
 
     if os.path.isfile(
         project_file
@@ -618,7 +901,7 @@ def health():
 
 
 # ============================================================
-# START SERVER
+# START FLASK SERVER
 # ============================================================
 
 if __name__ == "__main__":
