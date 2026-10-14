@@ -1,0 +1,17 @@
+Banking Basics
+
+A bank is a financial institution that accepts deposits from customers and provides financial services.
+
+A savings account is used to save money and usually earns interest on the deposited amount.
+
+A current account is mainly used for frequent business transactions.
+
+A fixed deposit allows a customer to keep money with a bank for a fixed period and earn interest.
+
+A loan is money borrowed from a financial institution that is repaid over an agreed period with applicable interest.
+
+An ATM allows customers to withdraw cash, check account balances, and perform other basic banking operations.
+
+Internet banking allows customers to access banking services through a website or online platform.
+
+Mobile banking allows customers to perform banking activities using a mobile application.

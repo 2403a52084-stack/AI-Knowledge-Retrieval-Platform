@@ -1,147 +1,108 @@
-const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
+let mediaRecorder = null;
+let audioChunks = [];
 
-let recognition = null;
-
-
-// ============================================================
-// SPEECH RECOGNITION
-// ============================================================
-
-if (SpeechRecognition) {
-
-    recognition = new SpeechRecognition();
-
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-
-    recognition.onstart = function () {
-
-        const status =
-            document.getElementById("speechStatus");
-
-        if (status) {
-            status.innerText =
-                "🎤 Listening... Please speak.";
-        }
-    };
-
-
-    recognition.onresult = function (event) {
-
-        const transcript =
-            event.results[0][0].transcript;
-
-        const questionInput =
-            document.getElementById("questionInput");
-
-        if (questionInput) {
-
-            questionInput.value =
-                transcript;
-        }
-
-        const status =
-            document.getElementById("speechStatus");
-
-        if (status) {
-
-            status.innerText =
-                "✅ Speech captured. Click Ask Question.";
-        }
-    };
-
-
-    recognition.onerror = function (event) {
-
-        const status =
-            document.getElementById("speechStatus");
-
-        if (status) {
-
-            status.innerText =
-                "❌ Speech error: " + event.error;
-        }
-    };
-
-
-    recognition.onend = function () {
-
-        const status =
-            document.getElementById("speechStatus");
-
-        if (
-            status &&
-            status.innerText ===
-            "🎤 Listening... Please speak."
-        ) {
-
-            status.innerText =
-                "Finished listening.";
-        }
-    };
-
-}
-
-
-// ============================================================
-// START LISTENING
-// ============================================================
-
-function startListening() {
-
-    if (!recognition) {
-
-        const status =
-            document.getElementById("speechStatus");
-
-        status.innerText =
-            "❌ Speech recognition is not supported.";
-
-        return;
-    }
+async function startListening() {
+    const status = document.getElementById("speechStatus");
+    const questionInput = document.getElementById("questionInput");
 
     try {
+        status.innerText = "🎤 Listening... Please speak.";
 
-        recognition.start();
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
+
+        audioChunks = [];
+
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = function (event) {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = async function () {
+            stream.getTracks().forEach(track => track.stop());
+
+            status.innerText = "⏳ Transcribing...";
+
+            const audioBlob = new Blob(audioChunks, {
+                type: "audio/webm"
+            });
+
+            const formData = new FormData();
+            formData.append("audio", audioBlob, "recording.webm");
+
+            try {
+                const response = await fetch(
+                    "http://127.0.0.1:5001/transcribe",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Whisper service returned " + response.status
+                    );
+                }
+
+                const data = await response.json();
+
+                if (data.text) {
+                    questionInput.value = data.text;
+                    status.innerText =
+                        "✅ Speech converted to text. Click Ask Question.";
+                } else {
+                    status.innerText =
+                        "❌ No speech was detected.";
+                }
+
+            } catch (error) {
+                console.error(error);
+
+                status.innerText =
+                    "❌ Whisper service connection failed: " +
+                    error.message;
+            }
+        };
+
+        mediaRecorder.start();
+
+        // Record for 5 seconds
+        setTimeout(() => {
+            if (
+                mediaRecorder &&
+                mediaRecorder.state === "recording"
+            ) {
+                mediaRecorder.stop();
+            }
+        }, 5000);
 
     } catch (error) {
+        console.error(error);
 
-        console.log(error);
-
+        status.innerText =
+            "❌ Microphone error: " + error.message;
     }
 }
 
 
-// ============================================================
-// TEXT TO SPEECH
-// ============================================================
-
 function speakAnswer() {
-
     const answerElement =
         document.querySelector(".answer");
 
     if (!answerElement) {
-
-        alert(
-            "No answer is available yet."
-        );
-
+        alert("No answer is available yet.");
         return;
     }
 
-    const text =
-        answerElement.innerText.trim();
+    const text = answerElement.innerText.trim();
 
     if (!text) {
-
-        alert(
-            "The answer is empty."
-        );
-
+        alert("The answer is empty.");
         return;
     }
 
@@ -153,8 +114,5 @@ function speakAnswer() {
     speech.pitch = 1;
 
     window.speechSynthesis.cancel();
-
-    window.speechSynthesis.speak(
-        speech
-    );
+    window.speechSynthesis.speak(speech);
 }

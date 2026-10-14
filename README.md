@@ -1,45 +1,58 @@
-# Development of AI-Based Knowledge Retrieval Platform with Query Resolution System
+## Milestone 4 – Testing, Analytics and Optimization
 
-## 1. Project Overview
+Milestone 4 focused on system evaluation, query analytics, knowledge gap detection, multi-domain testing, and retrieval optimization.
 
-This project develops an AI-based knowledge retrieval platform using Retrieval-Augmented Generation (RAG) and a multi-agent query resolution architecture.
+### M4.1 Query Analytics and Knowledge Gap Detection
 
-The system allows users to retrieve information from a knowledge base containing documents from Education and Technology domains.
+The platform now records:
 
-Supported document formats:
+- User queries
+- Query type
+- Domain/routing
+- Confidence score
+- Response time
+- Retrieved sources
+- Retrieved chunk count
+- Clarification requirement
 
-- PDF
-- DOCX
-- TXT
-- CSV
+A knowledge gap detector identifies unresolved and low-confidence queries.
 
-## 2. Main Features
+Analytics data is stored in `analytics.db` and can be viewed through the `/analytics` dashboard.
 
-- Knowledge-base document ingestion
-- Text extraction and cleaning
-- Text chunking
-- Sentence Transformer embeddings
-- ChromaDB vector storage
-- Semantic retrieval
-- RAG-based answer generation
-- Multi-agent query resolution
-- Conversation memory
-- Clarification handling
-- Web Speech API prototype
+### M4.2 End-to-End Testing
 
-## 3. System Architecture
+The system was tested across three domains:
 
-### Knowledge Base Flow
+- Education
+- Technology
+- Finance
 
-```text
-PDF / DOCX / TXT / CSV
-        ↓
-Document Loader
-        ↓
-Text Cleaning
-        ↓
-Chunking
-        ↓
-Embedding Generation
-        ↓
-ChromaDB Vector Store
+Six test cases were evaluated, covering factual queries, comparative queries, ambiguous queries, and conversation memory.
+
+**Test Pass Rate: 100% (6/6)**
+
+### M4.3 Retrieval Optimization
+
+Two retrieval configurations were compared.
+
+| Metric | Baseline | Optimized |
+|---|---:|---:|
+| Top-K | 3 | 2 |
+| Confidence Threshold | 0.40 | 0.55 |
+| Domain Retrieval Accuracy | 100.0% | 100.0% |
+| Average Top-1 Relevance | 0.6823 | 0.6823 |
+| Average Retrieved Chunks | 3.00 | 1.75 |
+| Average Response Time | 17.59 ms | 14.04 ms |
+
+The optimized configuration reduced retrieved chunks by **41.67%** and improved average response time by **20.15%**, while maintaining the measured domain retrieval accuracy and Top-1 relevance.
+
+### M4 Documentation
+
+Detailed documentation is available in:
+
+
+
+- `docs/m4_analytics.md`
+- `docs/m4_end_to_end_testing.md`
+- `docs/m4_optimization.md`
+- `docs/final_report.md`

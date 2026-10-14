@@ -1,6 +1,7 @@
 import os
 import sys
 import uuid
+import time
 
 from flask import (
     Flask,
@@ -40,7 +41,6 @@ os.makedirs(
 # ============================================================
 
 if SRC_DIR not in sys.path:
-
     sys.path.insert(
         0,
         SRC_DIR
@@ -69,14 +69,32 @@ from agents.orchestrator import Orchestrator
 
 
 # ============================================================
+# MILESTONE 4.1 - ANALYTICS
+# ============================================================
+
+from src.analytics.analytics_tracker import track_query
+
+from src.analytics.analytics_store import (
+    get_all_analytics,
+    get_analytics_summary
+)
+
+from src.analytics.gap_detector import (
+    detect_knowledge_gaps,
+    get_domain_summary,
+    get_query_type_summary,
+    get_status_summary
+)
+
+
+# ============================================================
 # FLASK APPLICATION
 # ============================================================
 
 app = Flask(__name__)
 
-# Needed for storing pending clarification queries
 app.secret_key = (
-    "ai-knowledge-retrieval-m3-secret-key"
+    "ai-knowledge-retrieval-m3-m4-secret-key"
 )
 
 
@@ -103,7 +121,7 @@ print("Multi-agent system loaded successfully.")
 
 
 # ============================================================
-# HELPER FUNCTION
+# MEMORY HELPER
 # ============================================================
 
 def get_memory_data():
@@ -117,6 +135,159 @@ def get_memory_data():
     )
 
     return history, size
+
+
+# ============================================================
+# ANALYTICS HELPER - DOMAIN
+# ============================================================
+
+def detect_domain(result):
+
+    if not result:
+        return "Unknown"
+
+    retrieval = result.get(
+        "retrieval",
+        {}
+    )
+
+    results = retrieval.get(
+        "results",
+        []
+    )
+
+    for item in results:
+
+        metadata = item.get(
+            "metadata",
+            {}
+        )
+
+        domain = metadata.get(
+            "domain"
+        )
+
+        if domain:
+            return str(domain).title()
+
+        source = metadata.get(
+            "source",
+            ""
+        )
+
+        source_text = str(
+            source
+        ).lower()
+
+        if "education" in source_text:
+            return "Education"
+
+        if "technology" in source_text:
+            return "Technology"
+
+        if "health" in source_text:
+            return "Healthcare"
+
+    return "Unknown"
+
+
+# ============================================================
+# ANALYTICS HELPER - SOURCES
+# ============================================================
+
+def get_analytics_sources(result):
+
+    sources = []
+
+    if not result:
+        return sources
+
+    retrieval = result.get(
+        "retrieval",
+        {}
+    )
+
+    retrieval_results = retrieval.get(
+        "results",
+        []
+    )
+
+    for item in retrieval_results:
+
+        metadata = item.get(
+            "metadata",
+            {}
+        )
+
+        source_name = metadata.get(
+            "source",
+            metadata.get(
+                "filename",
+                "Unknown"
+            )
+        )
+
+        chunk_id = metadata.get(
+            "chunk_id",
+            metadata.get(
+                "chunk_index",
+                "Unknown"
+            )
+        )
+
+        page = metadata.get(
+            "page",
+            metadata.get(
+                "section",
+                "Unknown"
+            )
+        )
+
+        sources.append({
+            "source": source_name,
+            "chunk_id": chunk_id,
+            "page": page,
+            "relevance_score": item.get(
+                "relevance_score"
+            )
+        })
+
+    return sources
+
+
+# ============================================================
+# ANALYTICS HELPER - CONFIDENCE
+# ============================================================
+
+def get_response_confidence(result):
+
+    if not result:
+        return None, None
+
+    response = result.get(
+        "response",
+        {}
+    )
+
+    confidence = response.get(
+        "confidence"
+    )
+
+    confidence_score = response.get(
+        "confidence_score"
+    )
+
+    if confidence is None:
+        confidence = result.get(
+            "confidence"
+        )
+
+    if confidence_score is None:
+        confidence_score = result.get(
+            "confidence_score"
+        )
+
+    return confidence, confidence_score
 
 
 # ============================================================
@@ -169,7 +340,7 @@ def index():
 
 
     # ========================================================
-    # GET ACTION
+    # ACTION
     # ========================================================
 
     action = request.form.get(
@@ -215,7 +386,6 @@ def index():
             )
 
         ]
-
 
         success_count = 0
 
@@ -489,6 +659,10 @@ def index():
         ).strip()
 
 
+        # ----------------------------------------------------
+        # EMPTY QUESTION
+        # ----------------------------------------------------
+
         if not question:
 
             return render_template(
@@ -505,10 +679,17 @@ def index():
             )
 
 
+        # ----------------------------------------------------
+        # START TIMER
+        # ----------------------------------------------------
+
+        start_time = time.perf_counter()
+
+
         try:
 
             # ================================================
-            # PROCESS THROUGH ORCHESTRATOR
+            # ORCHESTRATOR
             # ================================================
 
             result = orchestrator.process_query(
@@ -517,7 +698,38 @@ def index():
 
 
             # ================================================
-            # CHECK CLARIFICATION
+            # RESPONSE TIME
+            # ================================================
+
+            response_time_ms = (
+                (
+                    time.perf_counter()
+                    - start_time
+                )
+                * 1000
+            )
+
+
+            # ================================================
+            # CLASSIFICATION
+            # ================================================
+
+            classification = result.get(
+                "classification",
+                {}
+            )
+
+            query_type = classification.get(
+                "query_type"
+            )
+
+            routing = classification.get(
+                "routing"
+            )
+
+
+            # ================================================
+            # CLARIFICATION REQUIRED
             # ================================================
 
             if result.get(
@@ -538,13 +750,44 @@ def index():
                 )
 
 
-                # Store pending original query
+                # Save pending question
                 session["pending_query"] = (
                     question
                 )
 
 
-                # Refresh memory information
+                # --------------------------------------------
+                # ANALYTICS
+                # --------------------------------------------
+
+                track_query(
+                    query=question,
+
+                    query_type=query_type,
+
+                    routing=routing,
+
+                    status="clarification_required",
+
+                    confidence=None,
+
+                    confidence_score=None,
+
+                    clarification_required=True,
+
+                    response_time_ms=round(
+                        response_time_ms,
+                        2
+                    ),
+
+                    domain=detect_domain(
+                        result
+                    ),
+
+                    retrieved_sources=[]
+                )
+
+
                 memory_history, memory_size = (
                     get_memory_data()
                 )
@@ -552,16 +795,25 @@ def index():
 
                 return render_template(
                     "index.html",
+
                     answer=None,
+
                     result=result,
+
                     message=None,
+
                     question=question,
+
                     upload_results=[],
+
                     clarification_question=(
                         clarification_question
                     ),
+
                     pending_query=question,
+
                     memory_history=memory_history,
+
                     memory_size=memory_size
                 )
 
@@ -576,45 +828,170 @@ def index():
             )
 
 
+            confidence, confidence_score = (
+                get_response_confidence(
+                    result
+                )
+            )
+
+
+            status = result.get(
+                "status",
+                "success"
+            )
+
+
+            sources = (
+                get_analytics_sources(
+                    result
+                )
+            )
+
+
+            domain = detect_domain(
+                result
+            )
+
+
+            # ================================================
+            # ANALYTICS TRACKING
+            # ================================================
+
+            track_query(
+
+                query=question,
+
+                query_type=query_type,
+
+                routing=routing,
+
+                status=status,
+
+                confidence=confidence,
+
+                confidence_score=confidence_score,
+
+                clarification_required=False,
+
+                response_time_ms=round(
+                    response_time_ms,
+                    2
+                ),
+
+                domain=domain,
+
+                retrieved_sources=sources
+            )
+
+
+            # ================================================
+            # MEMORY
+            # ================================================
+
             memory_history, memory_size = (
                 get_memory_data()
             )
 
 
             return render_template(
+
                 "index.html",
+
                 answer=answer,
+
                 result=result,
+
                 message=None,
+
                 question=question,
+
                 upload_results=[],
+
                 clarification_question=None,
+
                 pending_query=None,
+
                 memory_history=memory_history,
+
                 memory_size=memory_size
             )
 
 
         except Exception as error:
 
+            response_time_ms = (
+                (
+                    time.perf_counter()
+                    - start_time
+                )
+                * 1000
+            )
+
+
+            # ----------------------------------------------
+            # SAVE ERROR TO ANALYTICS
+            # ----------------------------------------------
+
+            try:
+
+                track_query(
+
+                    query=question,
+
+                    query_type=None,
+
+                    routing=None,
+
+                    status="error",
+
+                    confidence=None,
+
+                    confidence_score=None,
+
+                    clarification_required=False,
+
+                    response_time_ms=round(
+                        response_time_ms,
+                        2
+                    ),
+
+                    domain="Unknown",
+
+                    retrieved_sources=[]
+                )
+
+            except Exception:
+                pass
+
+
             memory_history, memory_size = (
                 get_memory_data()
             )
 
 
             return render_template(
+
                 "index.html",
+
                 answer=None,
+
                 result=None,
+
                 message=(
                     f"❌ Question processing error: "
                     f"{error}"
                 ),
+
                 question=question,
+
                 upload_results=[],
+
                 clarification_question=None,
+
                 pending_query=None,
+
                 memory_history=memory_history,
+
                 memory_size=memory_size
             )
 
@@ -642,65 +1019,192 @@ def index():
 
 
         # ----------------------------------------------------
-        # CHECK PENDING QUERY
+        # NO PENDING QUERY
         # ----------------------------------------------------
 
         if not pending_query:
 
             return render_template(
+
                 "index.html",
+
                 answer=None,
+
                 result=None,
+
                 message=(
                     "❌ No pending question was found."
                 ),
+
                 question="",
+
                 upload_results=[],
+
                 clarification_question=None,
+
                 pending_query=None,
+
                 memory_history=memory_history,
+
                 memory_size=memory_size
             )
 
 
         # ----------------------------------------------------
-        # CHECK CLARIFICATION RESPONSE
+        # EMPTY CLARIFICATION
         # ----------------------------------------------------
 
         if not clarification_response:
 
             return render_template(
+
                 "index.html",
+
                 answer=None,
+
                 result=None,
+
                 message=(
                     "❌ Please provide the clarification."
                 ),
+
                 question=pending_query,
+
                 upload_results=[],
+
                 clarification_question=(
                     "Please provide more details."
                 ),
+
                 pending_query=pending_query,
+
                 memory_history=memory_history,
+
                 memory_size=memory_size
             )
+
+
+        start_time = time.perf_counter()
 
 
         try:
 
             # ================================================
-            # PROCESS REFINED QUERY
+            # REPROCESS WITH CLARIFICATION
             # ================================================
 
             result = orchestrator.process_query(
+
                 pending_query,
+
                 clarification_response
             )
 
 
+            response_time_ms = (
+                (
+                    time.perf_counter()
+                    - start_time
+                )
+                * 1000
+            )
+
+
             # ================================================
-            # CLEAR PENDING QUERY
+            # CLASSIFICATION
+            # ================================================
+
+            classification = result.get(
+                "classification",
+                {}
+            )
+
+            query_type = classification.get(
+                "query_type"
+            )
+
+            routing = classification.get(
+                "routing"
+            )
+
+
+            # ================================================
+            # CONFIDENCE
+            # ================================================
+
+            confidence, confidence_score = (
+                get_response_confidence(
+                    result
+                )
+            )
+
+
+            # ================================================
+            # STATUS
+            # ================================================
+
+            status = result.get(
+                "status",
+                "success"
+            )
+
+
+            # ================================================
+            # SOURCES
+            # ================================================
+
+            sources = (
+                get_analytics_sources(
+                    result
+                )
+            )
+
+
+            # ================================================
+            # DOMAIN
+            # ================================================
+
+            domain = detect_domain(
+                result
+            )
+
+
+            # ================================================
+            # ANALYTICS
+            # ================================================
+
+            track_query(
+
+                query=result.get(
+                    "refined_query",
+                    pending_query
+                ),
+
+                query_type=query_type,
+
+                routing=routing,
+
+                status=status,
+
+                confidence=confidence,
+
+                confidence_score=confidence_score,
+
+                clarification_required=True,
+
+                response_time_ms=round(
+                    response_time_ms,
+                    2
+                ),
+
+                domain=domain,
+
+                retrieved_sources=sources
+            )
+
+
+            # ================================================
+            # CLEAR PENDING QUESTION
             # ================================================
 
             session.pop(
@@ -721,23 +1225,78 @@ def index():
 
 
             return render_template(
+
                 "index.html",
+
                 answer=answer,
+
                 result=result,
+
                 message=None,
+
                 question=result.get(
                     "refined_query",
                     pending_query
                 ),
+
                 upload_results=[],
+
                 clarification_question=None,
+
                 pending_query=None,
+
                 memory_history=memory_history,
+
                 memory_size=memory_size
             )
 
 
         except Exception as error:
+
+            response_time_ms = (
+                (
+                    time.perf_counter()
+                    - start_time
+                )
+                * 1000
+            )
+
+
+            # ----------------------------------------------
+            # ANALYTICS ERROR
+            # ----------------------------------------------
+
+            try:
+
+                track_query(
+
+                    query=pending_query,
+
+                    query_type=None,
+
+                    routing=None,
+
+                    status="error",
+
+                    confidence=None,
+
+                    confidence_score=None,
+
+                    clarification_required=True,
+
+                    response_time_ms=round(
+                        response_time_ms,
+                        2
+                    ),
+
+                    domain="Unknown",
+
+                    retrieved_sources=[]
+                )
+
+            except Exception:
+                pass
+
 
             memory_history, memory_size = (
                 get_memory_data()
@@ -745,18 +1304,28 @@ def index():
 
 
             return render_template(
+
                 "index.html",
+
                 answer=None,
+
                 result=None,
+
                 message=(
                     f"❌ Clarification processing error: "
                     f"{error}"
                 ),
+
                 question=pending_query,
+
                 upload_results=[],
+
                 clarification_question=None,
+
                 pending_query=None,
+
                 memory_history=memory_history,
+
                 memory_size=memory_size
             )
 
@@ -771,16 +1340,71 @@ def index():
 
 
     return render_template(
+
         "index.html",
+
         answer=None,
+
         result=None,
+
         message="❌ Unknown action.",
+
         question="",
+
         upload_results=[],
+
         clarification_question=None,
+
         pending_query=None,
+
         memory_history=memory_history,
+
         memory_size=memory_size
+    )
+
+
+# ============================================================
+# ANALYTICS DASHBOARD
+# ============================================================
+
+@app.route(
+    "/analytics",
+    methods=["GET"]
+)
+def analytics_dashboard():
+
+    records = get_all_analytics()
+
+    summary = get_analytics_summary()
+
+    gaps = detect_knowledge_gaps()
+
+    domain_summary = get_domain_summary()
+
+    query_type_summary = (
+        get_query_type_summary()
+    )
+
+    status_summary = (
+        get_status_summary()
+    )
+
+
+    return render_template(
+
+        "analytics.html",
+
+        records=records,
+
+        summary=summary,
+
+        gaps=gaps,
+
+        domain_summary=domain_summary,
+
+        query_type_summary=query_type_summary,
+
+        status_summary=status_summary
     )
 
 
@@ -794,7 +1418,6 @@ def index():
 )
 def source(filename):
 
-    # Normalize path
     filename = filename.replace(
         "/",
         os.sep
@@ -820,7 +1443,9 @@ def source(filename):
     ):
 
         return send_from_directory(
+
             UPLOAD_FOLDER,
+
             uploaded_name
         )
 
@@ -830,8 +1455,11 @@ def source(filename):
     # ========================================================
 
     project_file = os.path.abspath(
+
         os.path.join(
+
             BASE_DIR,
+
             filename
         )
     )
@@ -873,7 +1501,9 @@ def source(filename):
         )
 
         return send_from_directory(
+
             directory,
+
             file_name
         )
 
@@ -901,13 +1531,16 @@ def health():
 
 
 # ============================================================
-# START FLASK SERVER
+# START APPLICATION
 # ============================================================
 
 if __name__ == "__main__":
 
     app.run(
+
         host="127.0.0.1",
+
         port=5000,
+
         debug=False
     )

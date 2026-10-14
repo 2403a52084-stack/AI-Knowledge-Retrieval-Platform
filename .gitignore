@@ -5,3 +5,11 @@ chroma_db/
 .env
 uploads/
 uploads/
+venv/
+voice_venv/
+__pycache__/
+*.py[cod]
+analytics.db
+voice_service.log
+voice_service_error.log
+voice_test.wav
